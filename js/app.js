@@ -892,10 +892,6 @@ function submitNewItem(e) {
         showToast(result.error || 'Chyba při ukládání nabídky.', 'error');
     }
 }
-    } else {
-        showToast(result.error || 'Chyba při ukládání nabídky.', 'error');
-    }
-}
 
 // ==========================================================================
 // SEARCH & FILTERING CONTROLS
