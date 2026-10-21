@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SMC Marketplace | Interní firemní platforma</title>
-    <meta name="description" content="Interní firemní marketplace SMC pro sdílení a nabídku průmyslového vybavení, komponent, nářadí a kancelářských potřeb.">
+    <meta name="description"
+        content="Interní firemní marketplace SMC pro sdílení a nabídku průmyslového vybavení, komponent, nářadí a kancelářských potřeb.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <!-- FontAwesome 6 CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Stylesheet -->
     <link rel="stylesheet" href="./css/style.css">
 </head>
+
 <body>
 
     <!-- NOTIFICATION TOAST CONTAINER -->
@@ -37,7 +42,8 @@
                     <label for="login-username">Uživatelské jméno</label>
                     <div class="input-icon-wrapper">
                         <i class="fa-solid fa-user"></i>
-                        <input type="text" id="login-username" placeholder="např. SMC, user1, user2" required autocomplete="username">
+                        <input type="text" id="login-username" placeholder="např. SMC, user1, user2" required
+                            autocomplete="username">
                     </div>
                 </div>
 
@@ -45,7 +51,8 @@
                     <label for="login-password">Heslo</label>
                     <div class="input-icon-wrapper">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="login-password" placeholder="Heslo (výchozí: 1234)" required autocomplete="current-password">
+                        <input type="password" id="login-password" placeholder="Heslo (výchozí: 1234)" required
+                            autocomplete="current-password">
                     </div>
                 </div>
 
@@ -90,7 +97,8 @@
                     </button>
                 </div>
                 <div class="quick-login-hint">
-                    <i class="fa-solid fa-circle-info"></i> Firemní heslo pro všechny testovací účty je <code>1234</code>.
+                    <i class="fa-solid fa-circle-info"></i> Firemní heslo pro všechny testovací účty je
+                    <code>1234</code>.
                 </div>
             </div>
         </div>
@@ -116,9 +124,11 @@
                 <!-- Global Search -->
                 <div class="nav-search">
                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <input type="text" id="search-input" placeholder="Hledat komponenty, nářadí, kancelář nebo sklad..." oninput="debounceSearch()">
+                    <input type="text" id="search-input" placeholder="Hledat komponenty, nářadí, kancelář nebo sklad..."
+                        oninput="debounceSearch()">
                     <span class="search-kbd" title="Stiskněte klávesu / pro rychlé hledání">/</span>
-                    <button id="clear-search-btn" class="search-clear-btn" style="display: none;" onclick="clearSearch()">
+                    <button id="clear-search-btn" class="search-clear-btn" style="display: none;"
+                        onclick="clearSearch()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -152,8 +162,7 @@
                     <i class="fa-solid fa-arrows-rotate"></i> Interní cirkulární ekonomika SMC
                 </div>
                 <h1>Firemní Marketplace SMC</h1>
-                <p>Sdílejte přebytečné pneumatické komponenty, měřicí přístroje, nářadí a kancelářské vybavení napříč odděleními.</p>
-                
+
                 <div class="hero-stats">
                     <div class="stat-card">
                         <span class="stat-number" id="stat-active">-</span>
@@ -180,12 +189,6 @@
 
             <!-- FILTER CONTROLS BAR -->
             <div class="controls-panel">
-                <!-- Categories Bar -->
-                <div class="categories-scroll" id="categories-bar">
-                    <button class="category-pill active" data-category="" onclick="filterCategory('')">
-                        <i class="fa-solid fa-border-all"></i> Všechny nabídky
-                    </button>
-                </div>
 
                 <!-- Secondary Filters & Sorters -->
                 <div class="filter-options-row">
@@ -386,9 +389,6 @@
 
         <!-- Drawer Footer: Logout & SQLite Export -->
         <div class="drawer-footer">
-            <button class="btn btn-outline btn-block btn-sm" style="margin-bottom: 8px;" onclick="downloadSQLiteDump()">
-                <i class="fa-solid fa-database"></i> Stáhnout SQLite SQL skript
-            </button>
             <button class="btn btn-danger-outline btn-block" onclick="handleLogout()">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Odhlásit se z účtu
             </button>
@@ -416,7 +416,8 @@
                 <div class="detail-info-box">
                     <div class="detail-header-row">
                         <h2 id="detail-title">Název položky</h2>
-                        <button id="detail-fav-btn" class="fav-action-btn" title="Přidat do oblíbených" onclick="toggleFavoriteCurrentDetail()">
+                        <button id="detail-fav-btn" class="fav-action-btn" title="Přidat do oblíbených"
+                            onclick="toggleFavoriteCurrentDetail()">
                             <i class="fa-solid fa-heart"></i>
                         </button>
                     </div>
@@ -450,20 +451,32 @@
                         <p id="detail-desc">Popis položky se načítá...</p>
                     </div>
 
-                    <!-- Inquiries & Reservation Section -->
-                    <div class="detail-inquiries-section">
-                        <div class="inquiries-header">
-                            <h4><i class="fa-solid fa-comments"></i> Dotazy a zájem o položku (<span id="detail-inquiry-count">0</span>)</h4>
+                    <!-- Inquiries & Private Chat Section -->
+                    <div class="detail-inquiries-section" id="detail-chat-section">
+                        <div class="inquiries-header" id="inquiries-header-container">
+                            <h4><i class="fa-solid fa-comments"></i> Soukromé dotazy a chat (<span id="detail-inquiry-count">0</span>)</h4>
                         </div>
-                        <div id="detail-inquiries-list" class="inquiries-list">
+
+                        <!-- Zájemci selector for seller -->
+                        <div id="seller-buyers-panel" class="seller-buyers-panel" style="display: none;">
+                            <div class="buyers-bar-title"><i class="fa-solid fa-users"></i> Zájemci o položku (klikněte pro otevření chatu):</div>
+                            <div id="buyers-tabs-list" class="buyers-tabs-list"></div>
+                        </div>
+
+                        <!-- Active chat header info (for seller) -->
+                        <div id="active-chat-info-bar" class="active-chat-info-bar" style="display: none;"></div>
+
+                        <div id="detail-inquiries-list" class="inquiries-list chat-stream">
                             <!-- Populated by JS -->
                         </div>
 
                         <!-- Inquiry Input Form -->
                         <form id="inquiry-form" class="inquiry-form" onsubmit="submitInquiry(event)">
                             <div class="inquiry-input-row">
-                                <input type="text" id="inquiry-input" placeholder="Napište vzkaz nebo dotaz (např. 'Mám zájem, mohu si vyzvednout zítra')..." required>
-                                <button type="submit" class="btn btn-primary">
+                                <input type="text" id="inquiry-input"
+                                    placeholder="Napište vzkaz nebo dotaz..."
+                                    required>
+                                <button type="submit" id="inquiry-submit-btn" class="btn btn-primary">
                                     <i class="fa-solid fa-paper-plane"></i> Odeslat
                                 </button>
                             </div>
@@ -474,13 +487,16 @@
                     <div id="detail-owner-tools" class="owner-tools-bar" style="display: none;">
                         <span class="owner-tools-label"><i class="fa-solid fa-gear"></i> Správa mé nabídky:</span>
                         <div class="owner-action-buttons">
-                            <button id="mark-reserved-btn" class="btn btn-sm btn-warning" onclick="changeCurrentItemStatus('reserved')">
+                            <button id="mark-reserved-btn" class="btn btn-sm btn-warning"
+                                onclick="changeCurrentItemStatus('reserved')">
                                 <i class="fa-solid fa-clock"></i> Označit jako Rezervováno
                             </button>
-                            <button id="mark-active-btn" class="btn btn-sm btn-success" onclick="changeCurrentItemStatus('active')">
+                            <button id="mark-active-btn" class="btn btn-sm btn-success"
+                                onclick="changeCurrentItemStatus('active')">
                                 <i class="fa-solid fa-check"></i> Nastavit jako Aktivní
                             </button>
-                            <button id="mark-sold-btn" class="btn btn-sm btn-outline" onclick="changeCurrentItemStatus('sold')">
+                            <button id="mark-sold-btn" class="btn btn-sm btn-outline"
+                                onclick="changeCurrentItemStatus('sold')">
                                 <i class="fa-solid fa-handshake"></i> Označit jako Předáno
                             </button>
                             <button class="btn btn-sm btn-danger" onclick="deleteCurrentItem()">
@@ -516,7 +532,8 @@
                     <!-- Title -->
                     <div class="form-group full-width">
                         <label for="new-title">Název nabídky / předmětu *</label>
-                        <input type="text" id="new-title" name="title" placeholder="např. SMC Pneumatický ventil SY5120 s konektorem" required>
+                        <input type="text" id="new-title" name="title"
+                            placeholder="např. SMC Pneumatický ventil SY5120 s konektorem" required>
                     </div>
 
                     <!-- Category -->
@@ -563,13 +580,16 @@
                     <!-- Location -->
                     <div class="form-group full-width">
                         <label for="new-location">Místo vyzvednutí / skladové umístění *</label>
-                        <input type="text" id="new-location" name="location" placeholder="např. Hala 2 - Skříň údržby B3 nebo Kancelář nákupu 102" required>
+                        <input type="text" id="new-location" name="location"
+                            placeholder="např. Hala 2 - Skříň údržby B3 nebo Kancelář nákupu 102" required>
                     </div>
 
                     <!-- Description -->
                     <div class="form-group full-width">
                         <label for="new-description">Podrobný popis nabídky *</label>
-                        <textarea id="new-description" name="description" rows="3" placeholder="Uveďte parametry, důvod přebytku, stav, případně co je součástí balení..." required></textarea>
+                        <textarea id="new-description" name="description" rows="3"
+                            placeholder="Uveďte parametry, důvod přebytku, stav, případně co je součástí balení..."
+                            required></textarea>
                     </div>
 
                     <!-- Image Section -->
@@ -580,34 +600,41 @@
                                 <i class="fa-solid fa-cloud-arrow-up"></i>
                                 <p><strong>Nahrajte vlastní fotografii</strong> z počítače</p>
                                 <span class="upload-hint">Podporované formáty: JPG, PNG, WEBP</span>
-                                <input type="file" id="new-image-file" name="image" accept="image/*" onchange="handleImageFileUpload(this)">
+                                <input type="file" id="new-image-file" name="image" accept="image/*"
+                                    onchange="handleImageFileUpload(this)">
                                 <div id="file-chosen-name" class="file-chosen-name" style="display: none;"></div>
                             </div>
 
                             <div class="preset-choice-wrapper">
                                 <span class="preset-label">Nebo zvolte z připravených ukázek:</span>
                                 <div class="preset-thumbnails">
-                                    <button type="button" class="preset-btn" onclick="selectPresetImage('smc_valve_cylinder', this)">
+                                    <button type="button" class="preset-btn"
+                                        onclick="selectPresetImage('smc_valve_cylinder', this)">
                                         <img src="./images/smc_valve_cylinder.jpg" alt="Válec SMC">
                                         <span>Pneumatika</span>
                                     </button>
-                                    <button type="button" class="preset-btn" onclick="selectPresetImage('smc_fittings', this)">
+                                    <button type="button" class="preset-btn"
+                                        onclick="selectPresetImage('smc_fittings', this)">
                                         <img src="./images/smc_fittings.jpg" alt="Spojky SMC">
                                         <span>Spojky & Hadice</span>
                                     </button>
-                                    <button type="button" class="preset-btn" onclick="selectPresetImage('digital_multimeter', this)">
+                                    <button type="button" class="preset-btn"
+                                        onclick="selectPresetImage('digital_multimeter', this)">
                                         <img src="./images/digital_multimeter.jpg" alt="Multimetr">
                                         <span>Měřidlo</span>
                                     </button>
-                                    <button type="button" class="preset-btn" onclick="selectPresetImage('tools_case', this)">
+                                    <button type="button" class="preset-btn"
+                                        onclick="selectPresetImage('tools_case', this)">
                                         <img src="./images/tools_case.jpg" alt="Nářadí">
                                         <span>Nářadí</span>
                                     </button>
-                                    <button type="button" class="preset-btn" onclick="selectPresetImage('it_monitor', this)">
+                                    <button type="button" class="preset-btn"
+                                        onclick="selectPresetImage('it_monitor', this)">
                                         <img src="./images/it_monitor.jpg" alt="Monitor">
                                         <span>IT Monitor</span>
                                     </button>
-                                    <button type="button" class="preset-btn" onclick="selectPresetImage('ergonomic_chair', this)">
+                                    <button type="button" class="preset-btn"
+                                        onclick="selectPresetImage('ergonomic_chair', this)">
                                         <img src="./images/ergonomic_chair.jpg" alt="Židle">
                                         <span>Kancelář</span>
                                     </button>
@@ -632,4 +659,5 @@
     <script src="./js/db.js"></script>
     <script src="./js/app.js"></script>
 </body>
+
 </html>

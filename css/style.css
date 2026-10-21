@@ -1832,14 +1832,325 @@ button, input, select, textarea {
     gap: 8px;
 }
 
+/* Chat & Inquiries System */
+.chat-header-flex {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.chat-header-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.seller-mode-pill {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #0369a1;
+    background: #e0f2fe;
+    border: 1px solid #bae6fd;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.private-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #15803d;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.chat-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 2px 0 0 0;
+    line-height: 1.4;
+}
+
+/* Seller: Buyers selector bar */
+.seller-buyers-panel {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.buyers-bar-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.buyers-tabs-list {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+}
+
+.buyer-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    background: var(--bg-muted);
+    border: 1.5px solid var(--border-light);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: left;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.buyer-tab-btn:hover {
+    background: #e0f2fe;
+    border-color: #38bdf8;
+}
+
+.buyer-tab-btn.active {
+    background: #eff6ff;
+    border-color: var(--smc-blue-primary);
+    box-shadow: 0 0 0 2px rgba(0, 91, 172, 0.15);
+}
+
+.buyer-tab-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    background: var(--smc-blue-primary);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.buyer-tab-btn.active .buyer-tab-avatar {
+    background: #0284c7;
+}
+
+.buyer-tab-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.buyer-tab-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.buyer-tab-dept {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.2;
+}
+
+.buyer-msg-count {
+    background: #cbd5e1;
+    color: #334155;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: var(--radius-full);
+    margin-left: 4px;
+}
+
+.buyer-tab-btn.active .buyer-msg-count {
+    background: var(--smc-blue-primary);
+    color: #ffffff;
+}
+
+/* Active chat banner (for seller) */
+.active-chat-info-bar {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.82rem;
+}
+
+.active-chat-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #166534;
+}
+
+.active-chat-indicator {
+    color: #22c55e;
+    font-size: 0.55rem;
+}
+
+.active-chat-contacts {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.chat-contact-btn {
+    font-size: 0.75rem;
+    color: #0369a1;
+    background: #ffffff;
+    border: 1px solid #bae6fd;
+    border-radius: var(--radius-sm);
+    padding: 3px 8px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all var(--transition-fast);
+}
+
+.chat-contact-btn:hover {
+    background: #e0f2fe;
+    border-color: #0284c7;
+}
+
+/* Chat Message Bubbles Stream */
 .inquiries-list {
-    max-height: 200px;
+    max-height: 250px;
+    min-height: 100px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     margin-bottom: 14px;
-    padding-right: 4px;
+    padding: 6px 4px 6px 2px;
+}
+
+.chat-message {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    max-width: 85%;
+}
+
+.chat-message.incoming {
+    align-self: flex-start;
+}
+
+.chat-message.outgoing {
+    align-self: flex-end;
+    justify-content: flex-end;
+}
+
+.chat-msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    background: #0284c7;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-bottom: 2px;
+}
+
+.chat-msg-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-message.outgoing .chat-msg-body {
+    align-items: flex-end;
+}
+
+.chat-msg-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.74rem;
+    margin-bottom: 3px;
+    padding: 0 4px;
+}
+
+.chat-msg-author {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.chat-msg-time {
+    color: var(--text-muted);
+}
+
+.chat-seller-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: var(--smc-blue-primary);
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+    display: inline-block;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+.chat-bubble {
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    font-size: 0.88rem;
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+.incoming-bubble {
+    background: #ffffff;
+    border: 1px solid var(--border-medium);
+    color: var(--text-primary);
+    border-bottom-left-radius: 2px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.outgoing-bubble {
+    background: linear-gradient(135deg, var(--smc-blue-primary), #00458a);
+    color: #ffffff;
+    border-bottom-right-radius: 2px;
+    box-shadow: 0 2px 4px rgba(0, 91, 172, 0.2);
+}
+
+.chat-empty-state {
+    text-align: center;
+    padding: 24px 16px;
+    background: #ffffff;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
 }
 
 .inquiry-bubble {

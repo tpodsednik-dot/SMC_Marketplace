@@ -17,6 +17,7 @@ const state = {
     onlyFavorites: false,
     onlyMyItems: false,
     currentItemDetail: null,
+    activeChatBuyerId: null,
     uploadedImageDataUrl: null,
     searchDebounceTimer: null
 };
@@ -337,6 +338,14 @@ function openItemDetail(itemId) {
     }
 
     state.currentItemDetail = item;
+    // Set active buyer chat tab: if threads exist, pick first buyer or keep current if valid
+    if (item.is_seller) {
+        if (!state.activeChatBuyerId || !(item.buyer_threads && item.buyer_threads.some(t => t.buyer_id === state.activeChatBuyerId))) {
+            state.activeChatBuyerId = (item.buyer_threads && item.buyer_threads.length > 0) ? item.buyer_threads[0].buyer_id : null;
+        }
+    } else {
+        state.activeChatBuyerId = state.currentUser ? state.currentUser.id : null;
+    }
 
     // Image & badges
     const img = document.getElementById('detail-img');
@@ -417,8 +426,8 @@ function openItemDetail(itemId) {
     // Description
     document.getElementById('detail-desc').textContent = item.description;
 
-    // Inquiries list
-    renderInquiries(item.inquiries || []);
+    // Private inquiries / chat
+    renderPrivateChat(item);
 
     // Owner Toolbar
     const ownerTools = document.getElementById('detail-owner-tools');
@@ -457,36 +466,226 @@ function closeDetailModal() {
     modal.classList.remove('active');
     document.body.style.overflow = '';
     state.currentItemDetail = null;
+    state.activeChatBuyerId = null;
 }
 
-function renderInquiries(inquiries) {
+function renderPrivateChat(item) {
+    const headerContainer = document.getElementById('inquiries-header-container');
+    const buyersPanel = document.getElementById('seller-buyers-panel');
+    const buyersTabsList = document.getElementById('buyers-tabs-list');
+    const activeChatInfoBar = document.getElementById('active-chat-info-bar');
     const list = document.getElementById('detail-inquiries-list');
-    const count = document.getElementById('detail-inquiry-count');
-    count.textContent = inquiries.length;
+    const form = document.getElementById('inquiry-form');
+    const input = document.getElementById('inquiry-input');
+    const submitBtn = document.getElementById('inquiry-submit-btn');
+    const countBadge = document.getElementById('detail-inquiry-count');
 
-    if (inquiries.length === 0) {
-        list.innerHTML = `
-            <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 12px;">
-                <i class="fa-regular fa-comment-dots"></i> Zatím žádný zájemce. Buďte první a napište vzkaz kolegovi!
+    if (!state.currentUser) {
+        if (buyersPanel) buyersPanel.style.display = 'none';
+        if (activeChatInfoBar) activeChatInfoBar.style.display = 'none';
+        if (countBadge) countBadge.textContent = '0';
+        if (headerContainer) {
+            headerContainer.innerHTML = `
+                <h4><i class="fa-solid fa-lock"></i> Soukromý chat k položce</h4>
+            `;
+        }
+        if (list) {
+            list.innerHTML = `
+                <div class="chat-empty-state">
+                    <i class="fa-solid fa-lock" style="font-size: 1.8rem; color: var(--text-muted); margin-bottom: 8px;"></i>
+                    <p style="color: var(--text-secondary); margin-bottom: 10px;">Pro zobrazení soukromého chatu se prosím přihlaste.</p>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="openLoginModal()">Přihlásit se</button>
+                </div>
+            `;
+        }
+        if (form) form.style.display = 'none';
+        return;
+    }
+
+    if (form) form.style.display = 'block';
+
+    if (item.is_seller) {
+        // --- PRODÁVAJÍCÍ REŽIM ---
+        const buyerThreads = item.buyer_threads || [];
+        if (countBadge) countBadge.textContent = buyerThreads.length;
+
+        if (headerContainer) {
+            headerContainer.innerHTML = `
+                <div class="chat-header-flex">
+                    <div class="chat-header-title">
+                        <h4><i class="fa-solid fa-comments"></i> Zájemci o položku a chaty (${buyerThreads.length})</h4>
+                        <span class="seller-mode-pill"><i class="fa-solid fa-user-tag"></i> Vaše nabídka (Prodávající)</span>
+                    </div>
+                    <p class="chat-subtitle">Zde vidíte všechny zájemce o vaši nabídku. Každý kolega má svůj vlastní soukromý chat.</p>
+                </div>
+            `;
+        }
+
+        if (buyerThreads.length === 0) {
+            if (buyersPanel) buyersPanel.style.display = 'none';
+            if (activeChatInfoBar) activeChatInfoBar.style.display = 'none';
+            if (list) {
+                list.innerHTML = `
+                    <div class="chat-empty-state">
+                        <i class="fa-regular fa-comment-dots" style="font-size: 2rem; color: var(--text-muted); margin-bottom: 8px;"></i>
+                        <strong style="display:block; color: var(--text-primary); margin-bottom: 4px;">Zatím žádný zájemce</strong>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">
+                            O tuto nabídku zatím nikdo nenapsal. Jakmile se objeví zájemce, jeho soukromý chat najdete zde.
+                        </p>
+                    </div>
+                `;
+            }
+            if (form) form.style.display = 'none';
+            return;
+        }
+
+        // We have buyer threads
+        if (buyersPanel) buyersPanel.style.display = 'block';
+
+        if (!state.activeChatBuyerId || !buyerThreads.some(t => t.buyer_id === state.activeChatBuyerId)) {
+            state.activeChatBuyerId = buyerThreads[0].buyer_id;
+        }
+
+        if (buyersTabsList) {
+            buyersTabsList.innerHTML = buyerThreads.map(b => {
+                const isSelected = b.buyer_id === state.activeChatBuyerId;
+                return `
+                    <button type="button" class="buyer-tab-btn ${isSelected ? 'active' : ''}" onclick="selectBuyerChat(${b.buyer_id})">
+                        <span class="buyer-tab-avatar">${escapeHtml(b.buyer_avatar)}</span>
+                        <div class="buyer-tab-text">
+                            <span class="buyer-tab-name">${escapeHtml(b.buyer_name)}</span>
+                            <span class="buyer-tab-dept">${escapeHtml(b.buyer_department)}</span>
+                        </div>
+                        <span class="buyer-msg-count" title="${b.messages.length} zpráv">${b.messages.length}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        const currentThread = buyerThreads.find(t => t.buyer_id === state.activeChatBuyerId) || buyerThreads[0];
+
+        if (activeChatInfoBar) {
+            activeChatInfoBar.style.display = 'flex';
+            activeChatInfoBar.innerHTML = `
+                <div class="active-chat-meta">
+                    <span class="active-chat-indicator"><i class="fa-solid fa-circle"></i></span>
+                    <span>Chat se zájemcem: <strong>${escapeHtml(currentThread.buyer_name)}</strong> <small>(${escapeHtml(currentThread.buyer_department)})</small></span>
+                </div>
+                <div class="active-chat-contacts">
+                    ${currentThread.buyer_email ? `<a href="mailto:${escapeHtml(currentThread.buyer_email)}" class="chat-contact-btn" title="E-mail: ${escapeHtml(currentThread.buyer_email)}"><i class="fa-solid fa-envelope"></i> E-mail</a>` : ''}
+                    ${currentThread.buyer_phone ? `<a href="tel:${escapeHtml(currentThread.buyer_phone)}" class="chat-contact-btn" title="Telefon: ${escapeHtml(currentThread.buyer_phone)}"><i class="fa-solid fa-phone"></i> Volat</a>` : ''}
+                </div>
+            `;
+        }
+
+        if (list) {
+            renderMessageStream(currentThread.messages, item, list);
+        }
+
+        if (input) {
+            input.placeholder = `Odpovědět zájemci (${currentThread.buyer_name})...`;
+        }
+        if (submitBtn) {
+            submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Odpovědět`;
+        }
+
+    } else {
+        // --- ZÁJEMCE (BUYER) REŽIM ---
+        if (buyersPanel) buyersPanel.style.display = 'none';
+        if (activeChatInfoBar) activeChatInfoBar.style.display = 'none';
+
+        const myMessages = item.my_thread || [];
+        if (countBadge) countBadge.textContent = myMessages.length;
+
+        if (headerContainer) {
+            headerContainer.innerHTML = `
+                <div class="chat-header-flex">
+                    <div class="chat-header-title">
+                        <h4><i class="fa-solid fa-lock" style="color: var(--smc-blue-primary);"></i> Soukromý chat s prodávajícím</h4>
+                        <span class="private-badge"><i class="fa-solid fa-shield-halved"></i> Pouze vy a prodejce</span>
+                    </div>
+                    <p class="chat-subtitle">Tento chat je soukromý. Vaše zprávy uvidí výhradně <strong>${escapeHtml(item.publisher_name)}</strong> (${escapeHtml(item.publisher_department)}). Ostatní kolegové konverzaci nevidí.</p>
+                </div>
+            `;
+        }
+
+        if (myMessages.length === 0) {
+            if (list) {
+                list.innerHTML = `
+                    <div class="chat-empty-state">
+                        <i class="fa-regular fa-paper-plane" style="font-size: 2rem; color: var(--text-muted); margin-bottom: 8px;"></i>
+                        <strong style="display:block; color: var(--text-primary); margin-bottom: 4px;">Máte zájem o tuto nabídku?</strong>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">
+                            Napište prodejci soukromou zprávu. Můžete se domluvit na předání, vyzkoušení nebo rezervaci.
+                        </p>
+                    </div>
+                `;
+            }
+        } else {
+            if (list) {
+                renderMessageStream(myMessages, item, list);
+            }
+        }
+
+        if (input) {
+            input.placeholder = `Napište soukromou zprávu prodejci (${item.publisher_name})...`;
+        }
+        if (submitBtn) {
+            submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Odeslat`;
+        }
+    }
+}
+
+function renderMessageStream(messages, item, container) {
+    if (!messages || messages.length === 0) {
+        container.innerHTML = `
+            <div class="chat-empty-state" style="padding: 14px;">
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Zatím žádné zprávy v této konverzaci.</p>
             </div>
         `;
         return;
     }
 
-    list.innerHTML = inquiries.map(inq => `
-        <div class="inquiry-bubble">
-            <div class="inquiry-meta">
-                <div>
-                    <span class="inquiry-author">${escapeHtml(inq.user_name)}</span>
-                    <span class="inquiry-dept">(${escapeHtml(inq.user_department)})</span>
-                </div>
-                <span class="inquiry-time">${formatDate(inq.created_at)}</span>
-            </div>
-            <div class="inquiry-text">${escapeHtml(inq.message)}</div>
-        </div>
-    `).join('');
+    container.innerHTML = messages.map(msg => {
+        const isMine = state.currentUser && msg.sender_id === state.currentUser.id;
+        const senderTag = msg.is_from_seller ? ' <span class="chat-seller-tag">Prodávající</span>' : '';
 
-    list.scrollTop = list.scrollHeight;
+        if (isMine) {
+            return `
+                <div class="chat-message outgoing">
+                    <div class="chat-msg-body">
+                        <div class="chat-msg-meta">
+                            <span class="chat-msg-time">${formatDate(msg.created_at)}</span>
+                            <span class="chat-msg-author">Vy</span>
+                        </div>
+                        <div class="chat-bubble outgoing-bubble">${escapeHtml(msg.message)}</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            return `
+                <div class="chat-message incoming">
+                    <div class="chat-msg-avatar">${escapeHtml(msg.sender_avatar || 'SM')}</div>
+                    <div class="chat-msg-body">
+                        <div class="chat-msg-meta">
+                            <span class="chat-msg-author">${escapeHtml(msg.sender_name)}${senderTag}</span>
+                            <span class="chat-msg-time">${formatDate(msg.created_at)}</span>
+                        </div>
+                        <div class="chat-bubble incoming-bubble">${escapeHtml(msg.message)}</div>
+                    </div>
+                </div>
+            `;
+        }
+    }).join('');
+
+    container.scrollTop = container.scrollHeight;
+}
+
+function selectBuyerChat(buyerId) {
+    state.activeChatBuyerId = Number(buyerId);
+    if (state.currentItemDetail) {
+        renderPrivateChat(state.currentItemDetail);
+    }
 }
 
 function submitInquiry(e) {
@@ -497,12 +696,29 @@ function submitInquiry(e) {
     const message = input.value.trim();
     if (!message) return;
 
-    const result = window.smcDb.addInquiry(state.currentItemDetail.id, message, state.currentUser.id);
+    const isSeller = state.currentItemDetail.is_seller;
+    const targetBuyerId = isSeller ? state.activeChatBuyerId : state.currentUser.id;
+
+    if (isSeller && !targetBuyerId) {
+        showToast('Není vybrán žádný zájemce, kterému chcete odpovědět.', 'error');
+        return;
+    }
+
+    const result = window.smcDb.addInquiry(
+        state.currentItemDetail.id,
+        message,
+        state.currentUser.id,
+        targetBuyerId
+    );
 
     if (result.success) {
         input.value = '';
-        showToast('Váš vzkaz byl úspěšně zaznamenán!', 'success');
-        openItemDetail(state.currentItemDetail.id);
+        showToast('Zpráva byla odeslána!', 'success');
+        
+        // Refresh item detail to update inquiries data
+        const updatedItem = window.smcDb.getItemById(state.currentItemDetail.id, state.currentUser.id);
+        state.currentItemDetail = updatedItem;
+        renderPrivateChat(updatedItem);
         loadItems();
     } else {
         showToast(result.error || 'Chyba při odesílání.', 'error');

@@ -26,7 +26,14 @@ class SMCLocalDatabase {
         try {
             const raw = localStorage.getItem(DB_STORAGE_KEY);
             if (raw) {
-                return JSON.parse(raw);
+                const parsed = JSON.parse(raw);
+                if (parsed.inquiries && Array.isArray(parsed.inquiries)) {
+                    parsed.inquiries.forEach(inq => {
+                        if (inq.buyer_id === undefined) inq.buyer_id = inq.user_id;
+                        if (inq.sender_id === undefined) inq.sender_id = inq.user_id;
+                    });
+                }
+                return parsed;
             }
         } catch (e) {
             console.warn('Chyba při čtení localStorage, vytvářím novou databázi:', e);
@@ -188,15 +195,41 @@ class SMCLocalDatabase {
                 {
                     id: 1,
                     item_id: 1,
-                    user_id: 2,
+                    buyer_id: 2,
+                    sender_id: 2,
                     message: 'Ahoj, mohu se pro válec stavit dnes odpoledne kolem 14:00? Hodil by se nám na lince 3.',
                     created_at: new Date(Date.now() - 3600000 * 6).toISOString()
                 },
                 {
                     id: 2,
+                    item_id: 1,
+                    buyer_id: 2,
+                    sender_id: 1,
+                    message: 'Ahoj Honzo, jasně, stav se na centrálním skladě, mám to pro tebe připravené.',
+                    created_at: new Date(Date.now() - 3600000 * 5).toISOString()
+                },
+                {
+                    id: 3,
+                    item_id: 1,
+                    buyer_id: 3,
+                    sender_id: 3,
+                    message: 'Dobrý den, pokud by si kolega válec nevzal, mám o něj také zájem pro montážní linku v hale B.',
+                    created_at: new Date(Date.now() - 3600000 * 3).toISOString()
+                },
+                {
+                    id: 4,
                     item_id: 5,
-                    user_id: 2,
+                    buyer_id: 2,
+                    sender_id: 2,
                     message: 'Zdravím, měl bych zájem o monitor do projekce. Mám na výměnu sadu pneumatického nářadí.',
+                    created_at: new Date(Date.now() - 3600000 * 4).toISOString()
+                },
+                {
+                    id: 5,
+                    item_id: 5,
+                    buyer_id: 2,
+                    sender_id: 3,
+                    message: 'Ahoj Honzo, to by šlo! Můžeme se na to zítra podívat u nás na IT podpoře.',
                     created_at: new Date(Date.now() - 3600000 * 2).toISOString()
                 }
             ]
@@ -270,7 +303,11 @@ class SMCLocalDatabase {
             const publisher = this.data.users.find(u => u.id === item.user_id) || {};
             const category = this.data.categories.find(c => c.id === item.category_id) || {};
             const isFav = currentUserId ? this.data.favorites.some(f => f.user_id === currentUserId && f.item_id === item.id) : false;
-            const inqCount = this.data.inquiries.filter(inq => inq.item_id === item.id).length;
+            const inqCount = new Set(
+                this.data.inquiries
+                    .filter(inq => inq.item_id === item.id)
+                    .map(inq => inq.buyer_id || inq.user_id)
+            ).size;
 
             return {
                 ...item,
@@ -350,21 +387,60 @@ class SMCLocalDatabase {
         const category = this.data.categories.find(c => c.id === item.category_id) || {};
         const isFav = currentUserId ? this.data.favorites.some(f => f.user_id === currentUserId && f.item_id === item.id) : false;
 
-        const inquiries = this.data.inquiries
+        const currentUser = currentUserId ? this.data.users.find(u => u.id === currentUserId) : null;
+        const isSeller = currentUser ? (currentUser.id === item.user_id || currentUser.role === 'admin') : false;
+
+        // Normalize and populate all inquiries for this item
+        const itemInquiries = this.data.inquiries
             .filter(inq => inq.item_id === item.id)
             .map(inq => {
-                const inqUser = this.data.users.find(u => u.id === inq.user_id) || {};
+                const buyerId = inq.buyer_id || inq.user_id;
+                const senderId = inq.sender_id || inq.user_id;
+                const sender = this.data.users.find(u => u.id === senderId) || {};
                 return {
                     id: inq.id,
+                    item_id: inq.item_id,
+                    buyer_id: buyerId,
+                    sender_id: senderId,
                     message: inq.message,
                     created_at: inq.created_at,
-                    user_id: inq.user_id,
-                    user_name: inqUser.name || 'Kolega',
-                    user_department: inqUser.department || 'SMC',
-                    avatar_text: inqUser.avatar_text || 'SM'
+                    sender_name: sender.name || 'Kolega',
+                    sender_department: sender.department || 'SMC',
+                    sender_avatar: sender.avatar_text || 'SM',
+                    is_from_seller: senderId === item.user_id
                 };
             })
             .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+        // Group into buyer threads (each buyer has their own separate conversation)
+        const buyerThreadsMap = {};
+        itemInquiries.forEach(inq => {
+            if (!buyerThreadsMap[inq.buyer_id]) {
+                const buyerUser = this.data.users.find(u => u.id === inq.buyer_id) || {};
+                buyerThreadsMap[inq.buyer_id] = {
+                    buyer_id: inq.buyer_id,
+                    buyer_name: buyerUser.name || 'Kolega',
+                    buyer_department: buyerUser.department || 'SMC',
+                    buyer_email: buyerUser.email || '',
+                    buyer_phone: buyerUser.phone || '',
+                    buyer_avatar: buyerUser.avatar_text || 'SM',
+                    messages: [],
+                    last_message: '',
+                    last_message_at: ''
+                };
+            }
+            buyerThreadsMap[inq.buyer_id].messages.push(inq);
+            buyerThreadsMap[inq.buyer_id].last_message = inq.message;
+            buyerThreadsMap[inq.buyer_id].last_message_at = inq.created_at;
+        });
+
+        const buyerThreads = Object.values(buyerThreadsMap);
+
+        // If the viewer is NOT the seller, provide ONLY their own thread
+        let myThread = [];
+        if (currentUserId) {
+            myThread = itemInquiries.filter(inq => inq.buyer_id === currentUserId);
+        }
 
         return {
             ...item,
@@ -379,7 +455,11 @@ class SMCLocalDatabase {
             category_name: category.name || item.category_id,
             category_color: category.badge_color || '#005BAC',
             is_favorite: isFav ? 1 : 0,
-            inquiries: inquiries
+            is_seller: isSeller,
+            buyer_threads: buyerThreads,
+            my_thread: myThread,
+            inquiries_count: isSeller ? buyerThreads.length : myThread.length,
+            total_inquiries_count: itemInquiries.length
         };
     }
 
@@ -469,15 +549,29 @@ class SMCLocalDatabase {
         return { success: true, is_favorite: isFav, message: message };
     }
 
-    addInquiry(itemId, message, currentUserId) {
+    addInquiry(itemId, message, currentUserId, buyerId = null) {
         if (!currentUserId) return { success: false, error: 'Pro odeslání zprávy se prosím přihlaste.' };
         if (!message || !message.trim()) return { success: false, error: 'Zpráva nesmí být prázdná.' };
 
-        const nextId = this.data.inquiries.length > 0 ? Math.max(...this.data.inquiries.map(i => i.id)) + 1 : 1;
+        const item = this.data.items.find(i => i.id === Number(itemId));
+        if (!item) return { success: false, error: 'Položka nenalezena.' };
+
+        // Determine who the buyer thread belongs to:
+        // If current user is the seller/admin, buyerId must be target buyer.
+        // If current user is a buyer, buyerId is currentUserId.
+        const isItemSeller = currentUserId === item.user_id || (this.data.users.find(u => u.id === currentUserId)?.role === 'admin' && buyerId);
+        const targetBuyerId = isItemSeller ? (buyerId ? Number(buyerId) : null) : currentUserId;
+
+        if (!targetBuyerId) {
+            return { success: false, error: 'Není vybrán zájemce, kterému chcete odpovědět.' };
+        }
+
+        const nextId = this.data.inquiries.length > 0 ? Math.max(...this.data.inquiries.map(i => i.id || 0)) + 1 : 1;
         const newInq = {
             id: nextId,
             item_id: Number(itemId),
-            user_id: currentUserId,
+            buyer_id: Number(targetBuyerId),
+            sender_id: Number(currentUserId),
             message: message.trim(),
             created_at: new Date().toISOString()
         };
@@ -485,17 +579,20 @@ class SMCLocalDatabase {
         this.data.inquiries.push(newInq);
         this.saveDatabase();
 
-        const user = this.data.users.find(u => u.id === currentUserId) || {};
+        const sender = this.data.users.find(u => u.id === currentUserId) || {};
         return {
             success: true,
-            message: 'Zpráva byla uložena do databáze!',
+            message: 'Zpráva byla uložena do chatu!',
             inquiry: {
                 id: newInq.id,
+                item_id: newInq.item_id,
+                buyer_id: newInq.buyer_id,
+                sender_id: newInq.sender_id,
                 message: newInq.message,
-                user_name: user.name || 'Kolega',
-                user_department: user.department || 'SMC',
-                avatar_text: user.avatar_text || 'SM',
-                user_id: currentUserId,
+                sender_name: sender.name || 'Kolega',
+                sender_department: sender.department || 'SMC',
+                sender_avatar: sender.avatar_text || 'SM',
+                is_from_seller: currentUserId === item.user_id,
                 created_at: newInq.created_at
             }
         };
