@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMC Marketplace | Interní firemní platforma</title>
+    <title>Komunitní Tržiště SMC | Burza zaměstnanců výrobního závodu</title>
     <meta name="description"
-        content="Interní firemní marketplace SMC pro sdílení a nabídku průmyslového vybavení, komponent, nářadí a kancelářských potřeb.">
+        content="Nezávislá komunitní platforma pro prodej, nákup, výměnu, darování a půjčování věcí v uzavřené komunitě zaměstnanců závodu.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,25 +24,35 @@
     <!-- NOTIFICATION TOAST CONTAINER -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-    <!-- LOGIN OVERLAY / AUTH GUARD -->
+    <!-- LOGIN & REGISTRATION OVERLAY / AUTH GUARD (FR-01, FR-02, FR-03) -->
     <div id="auth-modal" class="auth-overlay">
         <div class="auth-card">
             <div class="auth-header">
                 <div class="smc-logo-badge">
-                    <span class="smc-text">SMC</span>
-                    <span class="smc-sub">MARKETPLACE</span>
+                    <span class="smc-text"><i class="fa-solid fa-people-roof"></i> KOMUNITNÍ</span>
+                    <span class="smc-sub">TRH ZAMĚSTNANCŮ</span>
                 </div>
-                <h2>Interní firemní marketplace</h2>
-                <p>Přihlaste se firemním účtem pro přístup k interním nabídkám a technice</p>
+                <h2>Uzavřená komunita závodu</h2>
+                <p>Nezávislá platforma pro ~450 kolegů na soukromý e-mail bez firemních účtů.</p>
             </div>
 
-            <!-- Manual Login Form -->
+            <!-- Auth Switcher Tabs (Login vs Register) -->
+            <div class="auth-nav-tabs">
+                <button type="button" class="auth-nav-tab active" id="tab-login-btn" onclick="switchAuthTab('login')">
+                    <i class="fa-solid fa-right-to-bracket"></i> Přihlášení
+                </button>
+                <button type="button" class="auth-nav-tab" id="tab-register-btn" onclick="switchAuthTab('register')">
+                    <i class="fa-solid fa-user-plus"></i> Nová registrace
+                </button>
+            </div>
+
+            <!-- 1. LOGIN FORM -->
             <form id="login-form" class="auth-form" onsubmit="handleManualLogin(event)">
                 <div class="form-group">
-                    <label for="login-username">Uživatelské jméno</label>
+                    <label for="login-username">Uživatelské jméno nebo e-mail</label>
                     <div class="input-icon-wrapper">
                         <i class="fa-solid fa-user"></i>
-                        <input type="text" id="login-username" placeholder="např. SMC, user1, user2" required
+                        <input type="text" id="login-username" placeholder="např. michal, lucia, peter_mod, smc" required
                             autocomplete="username">
                     </div>
                 </div>
@@ -59,46 +69,112 @@
                 <div id="login-error" class="error-banner" style="display: none;"></div>
 
                 <button type="submit" class="btn btn-primary btn-block btn-lg" id="login-submit-btn">
-                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Přihlásit se
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Vstoupit do tržiště
                 </button>
             </form>
 
-            <!-- Quick Test Accounts Section -->
-            <div class="quick-login-section">
+            <!-- 2. REGISTRATION FORM (FR-01, FR-02, FR-03) -->
+            <form id="register-form" class="auth-form" style="display: none;" onsubmit="handleRegistration(event)">
+                <div class="form-group">
+                    <label for="reg-name">Jméno a příjmení *</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-id-card"></i>
+                        <input type="text" id="reg-name" placeholder="např. Josef Kovář" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reg-username">Přihlašovací jméno *</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="reg-username" placeholder="např. josef_k" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reg-email">Soukromý e-mail nebo telefon *</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input type="text" id="reg-email" placeholder="např. josef@gmail.com nebo +420 7..." required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reg-location">Lokalita / Bydliště (obec / město)</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <input type="text" id="reg-location" placeholder="např. Bytča, Žilina, Kysuce">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reg-password">Heslo *</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="reg-password" placeholder="Zvolte si bezpečné heslo" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reg-community-code">
+                        <strong>Kód komunity závodu *</strong>
+                        <span style="font-weight: normal; font-size: 0.78rem; color: var(--text-muted);">(z nástěnky v šatně/jídelně)</span>
+                    </label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-key" style="color: var(--smc-blue-primary);"></i>
+                        <input type="text" id="reg-community-code" placeholder="Zadejte kód (např. ZAVOD2026)" required style="text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="font-size: 0.8rem; color: var(--text-secondary);">
+                    <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="reg-terms-check" required style="margin-top: 2px;">
+                        <span>Souhlasím s <a href="javascript:void(0)" onclick="openGuidelinesModal()">pravidly komunity</a> a potvrzuji, že všechna předání a domluvy proběhnou <strong>mimo pracovní dobu</strong>.</span>
+                    </label>
+                </div>
+
+                <div id="register-error" class="error-banner" style="display: none;"></div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg" id="register-submit-btn">
+                    <i class="fa-solid fa-user-check"></i> Dokončit registraci a ověřit kód
+                </button>
+            </form>
+
+            <!-- Quick Permanent Accounts Section -->
+            <div class="quick-login-section" id="quick-login-section">
                 <div class="quick-login-divider">
-                    <span>Nebo rychlé testovací přihlášení (1 kliknutí)</span>
+                    <span>Stálé systémové účty (1 kliknutí)</span>
                 </div>
-                <div class="test-accounts-grid">
-                    <button type="button" class="test-account-chip smc-admin-chip" onclick="quickLogin('SMC', '1234')">
-                        <div class="chip-avatar smc-corp"><i class="fa-solid fa-building"></i></div>
+                <div class="test-accounts-grid two-cards-grid">
+                    <button type="button" class="test-account-chip official-smc-chip" onclick="quickLogin('smc', '1234')">
+                        <div class="chip-avatar smc-official-avatar"><i class="fa-solid fa-building-circle-check"></i></div>
                         <div class="chip-info">
-                            <strong>SMC (Admin)</strong>
-                            <span>Správa majetku & sklad</span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <strong>Oficiální prodej SMC</strong>
+                                <span class="chip-official-tag">Firma</span>
+                            </div>
+                            <span>Vyřazené vybavení závodu (Garantováno)</span>
                         </div>
                         <i class="fa-solid fa-chevron-right chip-arrow"></i>
                     </button>
 
-                    <button type="button" class="test-account-chip" onclick="quickLogin('user1', '1234')">
-                        <div class="chip-avatar">JN</div>
+                    <button type="button" class="test-account-chip admin-account-chip" onclick="quickLogin('admin', '1234')">
+                        <div class="chip-avatar admin-avatar"><i class="fa-solid fa-shield-halved"></i></div>
                         <div class="chip-info">
-                            <strong>user1 (Jan Novák)</strong>
-                            <span>Výroba & Servis pneumatik</span>
-                        </div>
-                        <i class="fa-solid fa-chevron-right chip-arrow"></i>
-                    </button>
-
-                    <button type="button" class="test-account-chip" onclick="quickLogin('user2', '1234')">
-                        <div class="chip-avatar">PD</div>
-                        <div class="chip-info">
-                            <strong>user2 (Petra Dvořáková)</strong>
-                            <span>Logistika, IT & Nákup</span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <strong>Hlavní Administrátor</strong>
+                                <span class="chip-admin-tag">Správce</span>
+                            </div>
+                            <span>Moderace, správa uživatelů & inzerátů</span>
                         </div>
                         <i class="fa-solid fa-chevron-right chip-arrow"></i>
                     </button>
                 </div>
-                <div class="quick-login-hint">
-                    <i class="fa-solid fa-circle-info"></i> Firemní heslo pro všechny testovací účty je
-                    <code>1234</code>.
+                <div class="quick-login-hint" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span><i class="fa-solid fa-circle-info"></i> Výchozí heslo pro oba účty: <code>1234</code></span>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="openGuidelinesModal()" style="font-size: 0.78rem;">
+                        <i class="fa-solid fa-book"></i> Pravidla komunity
+                    </button>
                 </div>
             </div>
         </div>
@@ -113,18 +189,18 @@
                 <!-- Brand / Logo -->
                 <div class="nav-brand" onclick="resetFiltersAndHome()">
                     <div class="brand-logo-symbol">
-                        <span class="logo-smc">SMC</span>
+                        <i class="fa-solid fa-people-roof" style="font-size: 1.25rem;"></i>
                     </div>
                     <div class="brand-text">
-                        <span class="brand-title">Marketplace</span>
-                        <span class="brand-tagline">Czech Internal Hub</span>
+                        <span class="brand-title">Komunitní Trh</span>
+                        <span class="brand-tagline">Zaměstnanci závodu</span>
                     </div>
                 </div>
 
-                <!-- Global Search -->
+                <!-- Global Search (FR-07) -->
                 <div class="nav-search">
                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <input type="text" id="search-input" placeholder="Hledat komponenty, nářadí, kancelář nebo sklad..."
+                    <input type="text" id="search-input" placeholder="Hledat nářadí, kola, díly, vybavení, jméno kolegy..."
                         oninput="debounceSearch()">
                     <span class="search-kbd" title="Stiskněte klávesu / pro rychlé hledání">/</span>
                     <button id="clear-search-btn" class="search-clear-btn" style="display: none;"
@@ -135,6 +211,30 @@
 
                 <!-- Nav Actions -->
                 <div class="nav-actions">
+                    <!-- Community Guidelines button -->
+                    <button class="btn btn-outline" onclick="openGuidelinesModal()" title="Pravidla komunity a kodex férovosti">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                        <span>Pravidla</span>
+                    </button>
+
+                    <!-- Moderator Queue button (visible only for moderators/admins) -->
+                    <button id="nav-mod-btn" class="btn nav-mod-btn" style="display: none;" onclick="openModerationModal()" title="Moderační centrum - kontrola nahlášení">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Moderace</span>
+                        <span id="nav-mod-count" class="mod-count-bubble">0</span>
+                    </button>
+
+                    <!-- Admin Dashboard & User Management buttons (visible only for admin) -->
+                    <button id="nav-admin-dashboard-btn" class="btn btn-outline nav-admin-btn" style="display: none;" onclick="switchToAdminDashboard()" title="Návrat na řídicí panel administrace">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <span>Administrace</span>
+                    </button>
+                    <button id="nav-admin-users-btn" class="btn nav-admin-btn" style="display: none;" onclick="openUserManagementModal()" title="Správa uživatelů a rolí">
+                        <i class="fa-solid fa-users-gear"></i>
+                        <span>Uživatelé</span>
+                    </button>
+
+                    <!-- Add New Item button (FR-05) -->
                     <button class="btn btn-primary" onclick="openNewItemModal()">
                         <i class="fa-solid fa-plus"></i>
                         <span>Přidat nabídku</span>
@@ -143,10 +243,10 @@
                     <!-- User Profile Dropdown Button -->
                     <div class="user-menu-wrapper">
                         <button class="user-menu-btn" id="user-menu-toggle" onclick="toggleUserDrawer()">
-                            <div class="user-avatar" id="nav-user-avatar">SMC</div>
+                            <div class="user-avatar" id="nav-user-avatar">MK</div>
                             <div class="user-info-text">
-                                <span class="user-name" id="nav-user-name">SMC Corporation</span>
-                                <span class="user-role-badge" id="nav-user-role">Správce</span>
+                                <span class="user-name" id="nav-user-name">Michal Kováč</span>
+                                <span class="user-role-badge" id="nav-user-role">Člen komunity</span>
                             </div>
                             <i class="fa-solid fa-chevron-down nav-chevron"></i>
                         </button>
@@ -155,13 +255,17 @@
             </div>
         </header>
 
-        <!-- HERO & METRICS BANNER -->
-        <section class="hero-banner">
+        <!-- HERO & METRICS BANNER (Prezentace komunity & KPI) -->
+        <section class="hero-banner" id="hero-banner-section">
             <div class="hero-content">
                 <div class="hero-badge">
-                    <i class="fa-solid fa-arrows-rotate"></i> Interní cirkulární ekonomika SMC
+                    <i class="fa-solid fa-handshake-angle"></i> Uzavřená ověřená komunita kolegů ze závodu
                 </div>
-                <h1>Firemní Marketplace SMC</h1>
+                <h1>Tržiště pro zaměstnance</h1>
+                <p style="max-width: 680px; margin: 0 auto 20px; font-size: 0.95rem; color: #E2E8F0; opacity: 0.95;">
+                    Prodej, nákup, výměna, darování a půjčování věcí mezi kolegy.
+                    Veškeré domluvy a předání probíhají <strong>výhradně mimo pracovní dobu</strong>.
+                </p>
 
                 <div class="hero-stats">
                     <div class="stat-card">
@@ -170,15 +274,11 @@
                     </div>
                     <div class="stat-card">
                         <span class="stat-number" id="stat-free">-</span>
-                        <span class="stat-label">Zdarma za odvoz</span>
+                        <span class="stat-label">Daruji / Za odvoz</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-number" id="stat-reserved">-</span>
-                        <span class="stat-label">Právě rezervováno</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-number" id="stat-users">-</span>
-                        <span class="stat-label">Aktivních kolegů</span>
+                        <span class="stat-number" id="stat-completed">-</span>
+                        <span class="stat-label">Úspěšných obchodů</span>
                     </div>
                 </div>
             </div>
@@ -187,37 +287,138 @@
         <!-- MAIN CONTENT AREA -->
         <main class="main-container">
 
-            <!-- FILTER CONTROLS BAR -->
-            <div class="controls-panel">
+            <!-- ADMIN DASHBOARD PANEL (ZÁKLADNÍ STRÁNKA PRO ADMINA) -->
+            <section id="admin-dashboard-panel" class="admin-dashboard-panel" style="display: none;">
+                <div class="admin-dashboard-header">
+                    <div class="admin-badge-top">
+                        <i class="fa-solid fa-shield-halved"></i> HLAVNÍ ADMINISTRACE SYSTÉMU
+                    </div>
+                    <h2>Administrátorské centrum komunity</h2>
+                    <p>Vítejte v řídicím panelu. Zde máte k dispozici správu moderace, uživatelských účtů a možnost přejít do katalogu inzerátů.</p>
+                </div>
 
-                <!-- Secondary Filters & Sorters -->
+                <!-- 3 HLAVNÍ AKCE ADMINA -->
+                <div class="admin-action-cards-grid">
+                    <!-- 1. MODERACE -->
+                    <div class="admin-action-card card-moderation" onclick="openModerationModal()">
+                        <div class="admin-card-icon-wrap mod-icon">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="admin-card-title-row">
+                                <h3>Moderace</h3>
+                                <span class="admin-status-pill pill-alert" id="admin-badge-reports-count">0 hlášení</span>
+                            </div>
+                            <p>Prověřování nahlášených nabídek od kolegů, kontrola zakázaného zboží a audit zásahů pro bezpečnost závodu.</p>
+                        </div>
+                        <div class="admin-card-footer">
+                            <button type="button" class="btn btn-outline btn-block">
+                                <i class="fa-solid fa-arrow-right"></i> Otevřít moderaci
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. SPRÁVA UŽIVATELŮ -->
+                    <div class="admin-action-card card-users" onclick="openUserManagementModal()">
+                        <div class="admin-card-icon-wrap users-icon">
+                            <i class="fa-solid fa-users-gear"></i>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="admin-card-title-row">
+                                <h3>Správa uživatelů</h3>
+                                <span class="admin-status-pill pill-info" id="admin-badge-users-count">Všichni členové</span>
+                            </div>
+                            <p>Přehled všech zaměstnanců v seznamu, hledání dle jména, přidělování moderátorů, tvorba firemních účtů SMC a změna hesel.</p>
+                        </div>
+                        <div class="admin-card-footer">
+                            <button type="button" class="btn btn-outline btn-block">
+                                <i class="fa-solid fa-arrow-right"></i> Otevřít správu uživatelů
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 3. ZOBRAZIT INZERÁTY -->
+                    <div class="admin-action-card card-items" onclick="switchToMarketplaceView()">
+                        <div class="admin-card-icon-wrap items-icon">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="admin-card-title-row">
+                                <h3>Zobrazit inzeráty</h3>
+                                <span class="admin-status-pill pill-success" id="admin-badge-items-count">Veřejný trh</span>
+                            </div>
+                            <p>Vstup do kompletního katalogu komunitního tržiště, nabídek zaměstnanců i oficiálního výprodeje vyřazeného majetku SMC.</p>
+                        </div>
+                        <div class="admin-card-footer">
+                            <button type="button" class="btn btn-primary btn-block">
+                                <i class="fa-solid fa-arrow-right"></i> Přejít na inzeráty
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ADMIN TOP BANNER WHEN BROWSING MARKETPLACE -->
+            <div id="admin-marketplace-banner" class="admin-marketplace-banner" style="display: none;">
+                <div class="admin-banner-left">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <div>
+                        <strong>Administrátorský režim náhledu inzerátů</strong>
+                        <span>Prohlížíte veřejný katalog nabídek jako administrátor.</span>
+                    </div>
+                </div>
+                <div class="admin-banner-right">
+                    <button class="btn btn-sm btn-white" onclick="switchToAdminDashboard()">
+                        <i class="fa-solid fa-arrow-left"></i> Zpět na řídicí panel administrace
+                    </button>
+                </div>
+            </div>
+
+            <!-- MARKETPLACE WRAPPER (FILTER CONTROLS & ITEMS) -->
+            <div id="marketplace-content-wrapper">
+
+            <!-- FILTER CONTROLS BAR (FR-05, FR-07) -->
+            <div class="controls-panel">
                 <div class="filter-options-row">
+                    <!-- Category Select Filter (Replaced pill bar) -->
                     <div class="filter-group">
-                        <label for="filter-price-type"><i class="fa-solid fa-tag"></i> Typ nabídky:</label>
-                        <select id="filter-price-type" onchange="applyFilters()">
-                            <option value="">Všechny typy</option>
-                            <option value="free">🎁 Zdarma / Za odvoz</option>
-                            <option value="fixed">💰 Prodej (pevná cena)</option>
-                            <option value="swap">🔄 Na výměnu</option>
-                            <option value="negotiable">🤝 Dohodou</option>
+                        <label for="filter-category"><i class="fa-solid fa-layer-group"></i> Kategorie:</label>
+                        <select id="filter-category" onchange="filterCategory(this.value)">
+                            <option value="">Všechny kategorie</option>
                         </select>
                     </div>
 
+                    <!-- 6 Offer Types Filter (FR-05) -->
                     <div class="filter-group">
-                        <label for="filter-condition"><i class="fa-solid fa-shield-halved"></i> Stav:</label>
+                        <label for="filter-price-type"><i class="fa-solid fa-tags"></i> Typ nabídky:</label>
+                        <select id="filter-price-type" onchange="applyFilters()">
+                            <option value="">Všechny typy nabídek</option>
+                            <option value="sell">🟢 Prodám (Pevná cena / Dohodou)</option>
+                            <option value="buy">🔵 Koupím / Sháním (Poptávka)</option>
+                            <option value="swap">🟣 Vyměním (Za jinou věc)</option>
+                            <option value="free">🟡 Daruji (Zdarma za odvoz)</option>
+                            <option value="lend">🟠 Půjčím (Zapůjčení na práci/víkend)</option>
+                            <option value="rent">🔴 Pronajmu (Pronájem)</option>
+                        </select>
+                    </div>
+
+                    <!-- Condition Filter -->
+                    <div class="filter-group">
+                        <label for="filter-condition"><i class="fa-solid fa-shield-halved"></i> Stav věci:</label>
                         <select id="filter-condition" onchange="applyFilters()">
                             <option value="">Všechny stavy</option>
                             <option value="new">✨ Nové / Nerozbalené</option>
-                            <option value="like_new">👍 Jako nové</option>
-                            <option value="used">🔧 Použité funkční</option>
-                            <option value="spares">⚙️ Na náhradní díly</option>
+                            <option value="like_new">👍 Jako nové (minimálně použité)</option>
+                            <option value="used">🔧 Použité (plně funkční)</option>
+                            <option value="spares">⚙️ Na náhradní díly / opravu</option>
                         </select>
                     </div>
 
+                    <!-- Sort Filter -->
                     <div class="filter-group">
-                        <label for="sort-select"><i class="fa-solid fa-arrow-down-wide-short"></i> Řadit:</label>
+                        <label for="sort-select"><i class="fa-solid fa-arrow-down-wide-short"></i> Seřadit:</label>
                         <select id="sort-select" onchange="applyFilters()">
-                            <option value="newest">Nejnovější</option>
+                            <option value="newest">Nejnověji přidané</option>
                             <option value="views">Nejsledovanější</option>
                             <option value="price_asc">Od nejlevnějšího</option>
                             <option value="price_desc">Od nejdražšího</option>
@@ -241,73 +442,85 @@
             <!-- ACTIVE FILTERS SUMMARY / COUNTER -->
             <div class="results-header">
                 <div class="results-info">
-                    <h2 id="catalog-title">Aktuální nabídky</h2>
+                    <h2 id="catalog-title">Aktuální nabídky v komunitě</h2>
                     <span id="items-count-badge" class="count-badge">Načítám...</span>
                 </div>
                 <div id="active-filter-chips" class="active-filter-chips"></div>
             </div>
 
-            <!-- ITEMS GRID (DLAŽDICE) -->
+            <!-- ITEMS GRID (DLAŽDICE PONÚK) -->
             <div id="items-grid" class="items-grid">
-                <!-- Dynamically populated cards -->
+                <!-- Dynamicky generované dlaždice -->
             </div>
 
             <!-- EMPTY STATE -->
             <div id="empty-state" class="empty-state" style="display: none;">
                 <div class="empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
                 <h3>Žádné nabídky neodpovídají zadaným kritériím</h3>
-                <p>Zkuste upravit vyhledávací dotaz, resetovat filtry nebo vytvořte novou nabídku.</p>
+                <p>Zkuste upravit vyhledávání, resetovat filtry nebo vytvořte novou nabídku pro kolegy.</p>
                 <button class="btn btn-outline" onclick="resetAllFilters()">
-                    <i class="fa-solid fa-rotate-left"></i> Obnovit filtry
+                    <i class="fa-solid fa-rotate-left"></i> Obnovit všechny filtry
                 </button>
             </div>
 
+            </div>
+            <!-- END MARKETPLACE WRAPPER -->
+
         </main>
 
-        <!-- FOOTER -->
+        <!-- FOOTER (Vyloučení odpovědnosti firmy & pravidla komunity) -->
         <footer class="app-footer">
             <div class="footer-container">
                 <div class="footer-left">
-                    <span class="footer-smc">SMC</span>
-                    <span>Interní firemní tržiště &copy; 2026 SMC Corporation CZ. 100% Client-side HTML, CSS, JS.</span>
+                    <span class="footer-smc"><i class="fa-solid fa-people-roof"></i> KOMUNITNÍ TRH</span>
+                    <span>Nezávislá zaměstnanecká platforma &copy; 2026. Dohody a předání probíhají mimo pracovní dobu. Společnost nenese odpovědnost za prodávané předměty ani dohody mezi uživateli.</span>
                 </div>
                 <div class="footer-links">
+                    <a href="javascript:void(0)" onclick="openGuidelinesModal()">Pravidla & Zakázané zboží</a>
                     <a href="javascript:void(0)" onclick="openUserDrawerTab('my-items')">Moje nabídky</a>
-                    <a href="javascript:void(0)" onclick="openUserDrawerTab('favorites')">Oblíbené</a>
-                    <a href="javascript:void(0)" onclick="openUserDrawerTab('profile')">Můj účet</a>
+                    <a href="javascript:void(0)" onclick="openUserDrawerTab('profile')">Můj profil & GDPR</a>
                 </div>
             </div>
         </footer>
 
     </div>
 
-    <!-- USER DRAWER / MODAL (MŮJ ÚČET, OBLÍBENÉ, MOJE POLOŽKY) -->
+    <!-- USER DRAWER / BOČNÍ PANEL (MŮJ PROFIL, MOJE NABÍDKY, OBLÍBENÉ, GDPR) -->
     <div id="user-drawer-backdrop" class="drawer-backdrop" onclick="closeUserDrawer()"></div>
     <aside id="user-drawer" class="user-drawer">
         <div class="drawer-header">
-            <h3><i class="fa-solid fa-user-circle"></i> Můj firemní účet</h3>
+            <h3><i class="fa-solid fa-user-circle"></i> Komunitní profil</h3>
             <button class="close-drawer-btn" onclick="closeUserDrawer()">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
 
-        <!-- User Profile Card -->
+        <!-- User Profile Card (FR-04) -->
         <div class="drawer-user-card">
-            <div class="drawer-avatar" id="drawer-user-avatar">SMC</div>
+            <div class="drawer-avatar" id="drawer-user-avatar">MK</div>
             <div class="drawer-user-details">
-                <h4 id="drawer-user-name">SMC Corporation</h4>
-                <div class="drawer-user-badge" id="drawer-user-role-badge">Správce</div>
+                <h4 id="drawer-user-name">Michal Kováč</h4>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span class="drawer-user-badge" id="drawer-user-role-badge">Člen komunity</span>
+                    <span class="user-rating-pill" id="drawer-user-rating-pill">
+                        <i class="fa-solid fa-star"></i> <span id="drawer-user-rating">5.0</span> (<span id="drawer-user-rating-count">0</span>)
+                    </span>
+                </div>
                 <div class="drawer-meta-line">
-                    <i class="fa-solid fa-building-user"></i>
-                    <span id="drawer-user-department">Centrální sklad</span>
+                    <i class="fa-solid fa-briefcase"></i>
+                    <span id="drawer-user-department">Montáž</span>
+                </div>
+                <div class="drawer-meta-line">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span id="drawer-user-location">Bytča & okolí</span>
                 </div>
                 <div class="drawer-meta-line">
                     <i class="fa-solid fa-envelope"></i>
-                    <span id="drawer-user-email">marketplace@smc.cz</span>
+                    <span id="drawer-user-email">michal@gmail.com</span>
                 </div>
                 <div class="drawer-meta-line">
                     <i class="fa-solid fa-phone"></i>
-                    <span id="drawer-user-phone">+420 541 424 611</span>
+                    <span id="drawer-user-phone">+421 9...</span>
                 </div>
             </div>
         </div>
@@ -320,8 +533,11 @@
             <button class="drawer-tab" data-tab="favorites" onclick="switchDrawerTab('favorites')">
                 <i class="fa-solid fa-heart"></i> Oblíbené
             </button>
+            <button class="drawer-tab" data-tab="profile" onclick="switchDrawerTab('profile')">
+                <i class="fa-solid fa-shield-halved"></i> Profil & GDPR
+            </button>
             <button class="drawer-tab" data-tab="switch-user" onclick="switchDrawerTab('switch-user')">
-                <i class="fa-solid fa-users-gear"></i> Přepnout účet
+                <i class="fa-solid fa-users-gear"></i> Přepnout
             </button>
         </div>
 
@@ -331,13 +547,13 @@
             <!-- TAB 1: MOJE NABÍDKY -->
             <div id="drawer-tab-my-items" class="drawer-tab-pane active">
                 <div class="pane-header">
-                    <h5>Moje zveřejněné položky</h5>
+                    <h5>Moje zveřejněné nabídky</h5>
                     <button class="btn btn-sm btn-primary" onclick="closeUserDrawer(); openNewItemModal();">
                         <i class="fa-solid fa-plus"></i> Nová
                     </button>
                 </div>
                 <div id="drawer-my-items-list" class="drawer-items-list">
-                    <!-- Populated by JS -->
+                    <!-- Dynamicky generované -->
                 </div>
             </div>
 
@@ -347,38 +563,65 @@
                     <h5>Uložené oblíbené položky</h5>
                 </div>
                 <div id="drawer-favorites-list" class="drawer-items-list">
-                    <!-- Populated by JS -->
+                    <!-- Dynamicky generované -->
                 </div>
             </div>
 
-            <!-- TAB 3: RYCHLÉ PŘEPNUTÍ ÚČTU (PRO TESTOVÁNÍ) -->
+            <!-- TAB 3: PROFIL, HODNOCENÍ & GDPR (FR-11, FR-16) -->
+            <div id="drawer-tab-profile" class="drawer-tab-pane">
+                <div class="pane-header">
+                    <h5>Důvěryhodnost a ochrana soukromí (GDPR)</h5>
+                </div>
+
+                <div class="guideline-card" style="margin-bottom: 14px;">
+                    <h5><i class="fa-solid fa-star"></i> Hodnocení od kolegů</h5>
+                    <div id="drawer-reviews-list" class="reviews-stream">
+                        <p style="font-size: 0.8rem; color: var(--text-muted);">Zatím jste neobdrželi žádná slovní hodnocení.</p>
+                    </div>
+                </div>
+
+                <!-- GDPR Export and Deletion -->
+                <div class="guideline-card">
+                    <h5><i class="fa-solid fa-user-shield"></i> Vaše data a právo na výmaz (FR-16)</h5>
+                    <p>V souladu s GDPR máte plnou kontrolu nad svými údaji. Můžete si stáhnout archiv dat nebo požádat o trvalý výmaz účtu.</p>
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                        <button class="btn btn-sm btn-outline" onclick="handleExportGdpr()">
+                            <i class="fa-solid fa-download"></i> Stáhnout mé údaje (GDPR JSON)
+                        </button>
+                        <button class="btn btn-sm btn-danger-outline" onclick="handleDeleteAccount()">
+                            <i class="fa-solid fa-user-xmark"></i> Trvale smazat můj účet a inzeráty
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: RYCHLÉ PŘEPNUTÍ ÚČTU -->
             <div id="drawer-tab-switch-user" class="drawer-tab-pane">
                 <div class="pane-header">
-                    <h5>Přepnout testovací profil</h5>
-                    <p class="tab-subtitle">Kliknutím se okamžitě přepnete na jiný firemní účet:</p>
+                    <h5>Přepnout stálý profil</h5>
+                    <p class="tab-subtitle">Rychlé přepnutí mezi stálými systémovými účty:</p>
                 </div>
                 <div class="switch-accounts-list">
-                    <div class="switch-account-item" onclick="switchUserAccount('SMC', '1234')">
-                        <div class="chip-avatar smc-corp"><i class="fa-solid fa-building"></i></div>
+                    <div class="switch-account-item official-smc-item" onclick="switchUserAccount('smc', '1234')">
+                        <div class="chip-avatar smc-official-avatar"><i class="fa-solid fa-building-circle-check"></i></div>
                         <div class="switch-item-text">
-                            <strong>SMC Corporation (Admin)</strong>
-                            <span>Centrální sklad & Správa</span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <strong>Oficiální prodej SMC</strong>
+                                <span class="chip-official-tag">Firma</span>
+                            </div>
+                            <span>Správa majetku • Vyřazené vybavení (★ 5.0)</span>
                         </div>
-                        <span class="btn btn-sm btn-outline">Zvolit</span>
+                        <span class="btn btn-sm btn-primary" style="background: #005BAC;">Zvolit</span>
                     </div>
-                    <div class="switch-account-item" onclick="switchUserAccount('user1', '1234')">
-                        <div class="chip-avatar">JN</div>
+
+                    <div class="switch-account-item admin-account-item" onclick="switchUserAccount('admin', '1234')">
+                        <div class="chip-avatar admin-avatar"><i class="fa-solid fa-shield-halved"></i></div>
                         <div class="switch-item-text">
-                            <strong>user1 (Jan Novák)</strong>
-                            <span>Výroba & Servis pneumatik</span>
-                        </div>
-                        <span class="btn btn-sm btn-outline">Zvolit</span>
-                    </div>
-                    <div class="switch-account-item" onclick="switchUserAccount('user2', '1234')">
-                        <div class="chip-avatar">PD</div>
-                        <div class="switch-item-text">
-                            <strong>user2 (Petra Dvořáková)</strong>
-                            <span>Logistika, IT & Nákup</span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <strong>Hlavní Administrátor</strong>
+                                <span class="chip-admin-tag">Správce</span>
+                            </div>
+                            <span>Plná systémová práva, správa uživatelů & moderace</span>
                         </div>
                         <span class="btn btn-sm btn-outline">Zvolit</span>
                     </div>
@@ -387,7 +630,7 @@
 
         </div>
 
-        <!-- Drawer Footer: Logout & SQLite Export -->
+        <!-- Drawer Footer: Logout -->
         <div class="drawer-footer">
             <button class="btn btn-danger-outline btn-block" onclick="handleLogout()">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Odhlásit se z účtu
@@ -395,18 +638,27 @@
         </div>
     </aside>
 
-    <!-- ITEM DETAIL MODAL -->
+    <!-- ITEM DETAIL MODAL (DETAIL NABÍDKY, CHAT, REPORT, REZERVACE) -->
     <div id="detail-modal" class="modal-overlay" onclick="if(event.target === this) closeDetailModal()">
         <div class="modal-container detail-modal-content">
             <button class="modal-close-btn" onclick="closeDetailModal()">
                 <i class="fa-solid fa-xmark"></i>
             </button>
 
+            <!-- MANDATORY HANDOVER & TIME RULE BANNER (FR-15, Bod 7.7) -->
+            <div class="handover-disclaimer-banner">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    <strong>Pravidlo předání:</strong> Domluva i fyzické předání věci probíhá <strong>VÝHRADNĚ MIMO PRACOVNÍ DOBU</strong> na bezpečném místě domluveném mezi vámi (např. povolené zóny parkoviště mimo příjezdové a požární trasy). Společnost není účastníkem ani garantem transakce.
+                </div>
+            </div>
+
             <div class="detail-grid">
                 <!-- Left Column: Image -->
                 <div class="detail-image-box">
                     <img id="detail-img" src="" alt="Detail položky">
                     <div class="detail-image-badges">
+                        <span id="detail-offer-badge" class="badge"></span>
                         <span id="detail-category-badge" class="badge"></span>
                         <span id="detail-status-badge" class="badge"></span>
                     </div>
@@ -415,11 +667,17 @@
                 <!-- Right Column: Details & Inquiry -->
                 <div class="detail-info-box">
                     <div class="detail-header-row">
-                        <h2 id="detail-title">Název položky</h2>
-                        <button id="detail-fav-btn" class="fav-action-btn" title="Přidat do oblíbených"
-                            onclick="toggleFavoriteCurrentDetail()">
-                            <i class="fa-solid fa-heart"></i>
-                        </button>
+                        <h2 id="detail-title">Název nabídky</h2>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button id="detail-report-btn" class="report-item-btn" title="Nahlásit nevhodnou nabídku nebo zakázané zboží"
+                                onclick="openReportModalCurrentDetail()">
+                                <i class="fa-solid fa-flag"></i> Nahlásit
+                            </button>
+                            <button id="detail-fav-btn" class="fav-action-btn" title="Přidat do oblíbených"
+                                onclick="toggleFavoriteCurrentDetail()">
+                                <i class="fa-solid fa-heart"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="detail-price-condition-row">
@@ -428,38 +686,44 @@
                             <i class="fa-solid fa-shield-halved"></i> Nové
                         </div>
                         <div class="detail-location">
-                            <i class="fa-solid fa-location-dot"></i> <span id="detail-location">Hala A</span>
+                            <i class="fa-solid fa-location-dot"></i> <span id="detail-location">Žilina</span>
                         </div>
                     </div>
 
-                    <!-- Publisher Card -->
+                    <!-- Publisher Card with Reputation (FR-04, FR-11) -->
                     <div class="detail-publisher-card">
-                        <div class="publisher-avatar" id="detail-publisher-avatar">JN</div>
+                        <div class="publisher-avatar" id="detail-publisher-avatar">LM</div>
                         <div class="publisher-meta">
-                            <span class="publisher-label">Nabídku zveřejnil:</span>
-                            <strong id="detail-publisher-name">Jan Novák</strong>
-                            <div class="publisher-sub" id="detail-publisher-dept">Výroba & Servis pneumatik</div>
+                            <span class="publisher-label">Nabídku zveřejnil ověřený kolega:</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <strong id="detail-publisher-name">Lucie Molnárová</strong>
+                                <span class="user-rating-pill" id="detail-publisher-rating-pill">
+                                    <i class="fa-solid fa-star"></i> <span id="detail-publisher-rating-num">5.0</span> (<span id="detail-publisher-reviews-count">0</span>)
+                                </span>
+                            </div>
+                            <div class="publisher-sub" id="detail-publisher-dept">Logistika & Sklad</div>
                         </div>
                         <div class="publisher-contact-direct" id="detail-publisher-contacts">
-                            <!-- email & phone buttons -->
+                            <!-- email & phone buttons appear once enabled -->
                         </div>
                     </div>
 
                     <!-- Description -->
                     <div class="detail-desc-section">
-                        <h4>Popis položky</h4>
-                        <p id="detail-desc">Popis položky se načítá...</p>
+                        <h4>Podrobný popis</h4>
+                        <p id="detail-desc">Popis nabídky se načítá...</p>
                     </div>
 
-                    <!-- Inquiries & Private Chat Section -->
+                    <!-- Inquiries & Private Chat Section (FR-08) -->
                     <div class="detail-inquiries-section" id="detail-chat-section">
                         <div class="inquiries-header" id="inquiries-header-container">
-                            <h4><i class="fa-solid fa-comments"></i> Soukromé dotazy a chat (<span id="detail-inquiry-count">0</span>)</h4>
+                            <h4><i class="fa-solid fa-comments"></i> Soukromá domluva a zprávy (<span id="detail-inquiry-count">0</span>)</h4>
+                            <span style="font-size: 0.78rem; color: var(--text-muted);"><i class="fa-solid fa-lock"></i> Vaše kontakty jsou chráněny</span>
                         </div>
 
                         <!-- Zájemci selector for seller -->
                         <div id="seller-buyers-panel" class="seller-buyers-panel" style="display: none;">
-                            <div class="buyers-bar-title"><i class="fa-solid fa-users"></i> Zájemci o položku (klikněte pro otevření chatu):</div>
+                            <div class="buyers-bar-title"><i class="fa-solid fa-users"></i> Zájemci o nabídku (klikněte na jméno pro chat):</div>
                             <div id="buyers-tabs-list" class="buyers-tabs-list"></div>
                         </div>
 
@@ -474,7 +738,7 @@
                         <form id="inquiry-form" class="inquiry-form" onsubmit="submitInquiry(event)">
                             <div class="inquiry-input-row">
                                 <input type="text" id="inquiry-input"
-                                    placeholder="Napište vzkaz nebo dotaz..."
+                                    placeholder="Napište zprávu kolegovi (domluva času mimo směnu)..."
                                     required>
                                 <button type="submit" id="inquiry-submit-btn" class="btn btn-primary">
                                     <i class="fa-solid fa-paper-plane"></i> Odeslat
@@ -483,7 +747,7 @@
                         </form>
                     </div>
 
-                    <!-- Owner Management Toolbar (if creator or admin) -->
+                    <!-- Owner Management Toolbar (FR-06, FR-10, FR-11) -->
                     <div id="detail-owner-tools" class="owner-tools-bar" style="display: none;">
                         <span class="owner-tools-label"><i class="fa-solid fa-gear"></i> Správa mé nabídky:</span>
                         <div class="owner-action-buttons">
@@ -495,9 +759,9 @@
                                 onclick="changeCurrentItemStatus('active')">
                                 <i class="fa-solid fa-check"></i> Nastavit jako Aktivní
                             </button>
-                            <button id="mark-sold-btn" class="btn btn-sm btn-outline"
-                                onclick="changeCurrentItemStatus('sold')">
-                                <i class="fa-solid fa-handshake"></i> Označit jako Předáno
+                            <button id="mark-complete-btn" class="btn btn-sm btn-primary"
+                                onclick="openCompleteTransactionModal()">
+                                <i class="fa-solid fa-handshake"></i> Ukončit obchod & Ohodnotit
                             </button>
                             <button class="btn btn-sm btn-danger" onclick="deleteCurrentItem()">
                                 <i class="fa-solid fa-trash"></i> Smazat
@@ -510,7 +774,7 @@
         </div>
     </div>
 
-    <!-- NEW ITEM MODAL -->
+    <!-- NEW ITEM MODAL (FR-05: 6 TYPŮ NABÍDEK) -->
     <div id="new-item-modal" class="modal-overlay" onclick="if(event.target === this) closeNewItemModal()">
         <div class="modal-container form-modal-content">
             <button class="modal-close-btn" onclick="closeNewItemModal()">
@@ -522,8 +786,8 @@
                     <i class="fa-solid fa-box-open"></i>
                 </div>
                 <div>
-                    <h2>Přidat novou nabídku</h2>
-                    <p>Nabídněte techniku, komponenty nebo přebytky kolegům v SMC</p>
+                    <h2>Přidat novou nabídku do komunity</h2>
+                    <p>Nabídněte věci kolegům ze závodu. Transakce a předání musí proběhnout mimo pracovní dobu.</p>
                 </div>
             </div>
 
@@ -531,74 +795,77 @@
                 <div class="form-grid">
                     <!-- Title -->
                     <div class="form-group full-width">
-                        <label for="new-title">Název nabídky / předmětu *</label>
+                        <label for="new-title">Název nabídky / hledané věci *</label>
                         <input type="text" id="new-title" name="title"
-                            placeholder="např. SMC Pneumatický ventil SY5120 s konektorem" required>
+                            placeholder="např. Dětské kolo Woom 3, Sada zimních pneu 205/55 R16, Aku vrtačka..." required>
+                    </div>
+
+                    <!-- Offer Type (FR-05) -->
+                    <div class="form-group">
+                        <label for="new-price-type">Typ nabídky *</label>
+                        <select id="new-price-type" name="price_type" onchange="togglePriceInput(this.value)" required>
+                            <option value="sell">🟢 Prodám (za částku nebo dohodou)</option>
+                            <option value="buy">🔵 Koupím / Sháním (poptávka věci)</option>
+                            <option value="swap">🟣 Vyměním (výměna za jinou věc)</option>
+                            <option value="free">🟡 Daruji (zdarma za odvoz)</option>
+                            <option value="lend">🟠 Půjčím (zapůjčení na víkend/práci)</option>
+                            <option value="rent">🔴 Pronajmu (pronájem)</option>
+                        </select>
                     </div>
 
                     <!-- Category -->
                     <div class="form-group">
                         <label for="new-category">Kategorie *</label>
                         <select id="new-category" name="category_id" required>
-                            <option value="pneumatics">Pneumatika & Ventily</option>
-                            <option value="automation">Automatizace & Pohony</option>
-                            <option value="tools">Nářadí & Měřidla</option>
-                            <option value="electrical">Elektro & Senzory</option>
-                            <option value="office">Kancelář & IT</option>
-                            <option value="material">Materiál & Konstrukce</option>
+                            <option value="home_garden">Domov, byt & zahrada</option>
+                            <option value="tools_workshop">Dílna, stavba & nářadí</option>
+                            <option value="auto_moto">Auto-moto & pneumatiky</option>
+                            <option value="sport_leisure">Sport, kola & turistika</option>
+                            <option value="kids_family">Děti, kočárky & hračky</option>
+                            <option value="electronics">Elektronika & smart home</option>
+                            <option value="produce_food">Zahrada & domácí přebytky</option>
                         </select>
                     </div>
 
                     <!-- Condition -->
                     <div class="form-group">
-                        <label for="new-condition">Stav položky *</label>
+                        <label for="new-condition">Stav věci *</label>
                         <select id="new-condition" name="condition" required>
-                            <option value="new">Nové / Nerozbalené</option>
-                            <option value="like_new" selected>Jako nové (minimálně použité)</option>
-                            <option value="used">Použité (plně funkční)</option>
-                            <option value="spares">Na náhradní díly / k opravě</option>
+                            <option value="new">✨ Nové / Nerozbalené</option>
+                            <option value="like_new" selected>👍 Jako nové (minimálně použité)</option>
+                            <option value="used">🔧 Použité (plně funkční)</option>
+                            <option value="spares">⚙️ Na náhradní díly / opravu</option>
                         </select>
                     </div>
 
-                    <!-- Price Type -->
-                    <div class="form-group">
-                        <label for="new-price-type">Cenový model *</label>
-                        <select id="new-price-type" name="price_type" onchange="togglePriceInput(this.value)" required>
-                            <option value="free">🎁 Zdarma (za odvoz / přenechání)</option>
-                            <option value="fixed">💰 Pevná cena (Kč)</option>
-                            <option value="swap">🔄 Výměna za jiné vybavení</option>
-                            <option value="negotiable">🤝 Cena dohodou</option>
-                        </select>
+                    <!-- Price Amount in EUR -->
+                    <div class="form-group" id="price-amount-group">
+                        <label for="new-price">Cena v € (při prodeji nebo poplatku za zapůjčení)</label>
+                        <input type="number" id="new-price" name="price" min="0" step="1" placeholder="např. 25">
                     </div>
 
-                    <!-- Price Amount -->
-                    <div class="form-group" id="price-amount-group" style="display: none;">
-                        <label for="new-price">Částka v Kč</label>
-                        <input type="number" id="new-price" name="price" min="0" step="10" placeholder="např. 450">
-                    </div>
-
-                    <!-- Location -->
+                    <!-- Location / Handover Place -->
                     <div class="form-group full-width">
-                        <label for="new-location">Místo vyzvednutí / skladové umístění *</label>
+                        <label for="new-location">Místo vyzvednutí / bydliště (mimo pracovní dobu) *</label>
                         <input type="text" id="new-location" name="location"
-                            placeholder="např. Hala 2 - Skříň údržby B3 nebo Kancelář nákupu 102" required>
+                            placeholder="např. Žilina - Vlčince nebo parkoviště před halou po směně" required>
                     </div>
 
                     <!-- Description -->
                     <div class="form-group full-width">
                         <label for="new-description">Podrobný popis nabídky *</label>
                         <textarea id="new-description" name="description" rows="3"
-                            placeholder="Uveďte parametry, důvod přebytku, stav, případně co je součástí balení..."
+                            placeholder="Uveďte rozměry, důvod prodeje/darování, technický stav, případně co hledáte na výměnu..."
                             required></textarea>
                     </div>
 
                     <!-- Image Section -->
                     <div class="form-group full-width">
-                        <label>Fotografie předmětu</label>
+                        <label>Fotografie nabídky</label>
                         <div class="image-source-selection">
                             <div class="upload-dropzone" id="dropzone">
                                 <i class="fa-solid fa-cloud-arrow-up"></i>
-                                <p><strong>Nahrajte vlastní fotografii</strong> z počítače</p>
+                                <p><strong>Nahrajte vlastní fotografii</strong> z telefonu / počítače</p>
                                 <span class="upload-hint">Podporované formáty: JPG, PNG, WEBP</span>
                                 <input type="file" id="new-image-file" name="image" accept="image/*"
                                     onchange="handleImageFileUpload(this)">
@@ -606,37 +873,37 @@
                             </div>
 
                             <div class="preset-choice-wrapper">
-                                <span class="preset-label">Nebo zvolte z připravených ukázek:</span>
+                                <span class="preset-label">Nebo zvolte z připravených komunitních ukázek:</span>
                                 <div class="preset-thumbnails">
                                     <button type="button" class="preset-btn"
-                                        onclick="selectPresetImage('smc_valve_cylinder', this)">
-                                        <img src="./images/smc_valve_cylinder.jpg" alt="Válec SMC">
-                                        <span>Pneumatika</span>
-                                    </button>
-                                    <button type="button" class="preset-btn"
-                                        onclick="selectPresetImage('smc_fittings', this)">
-                                        <img src="./images/smc_fittings.jpg" alt="Spojky SMC">
-                                        <span>Spojky & Hadice</span>
-                                    </button>
-                                    <button type="button" class="preset-btn"
-                                        onclick="selectPresetImage('digital_multimeter', this)">
-                                        <img src="./images/digital_multimeter.jpg" alt="Multimetr">
-                                        <span>Měřidlo</span>
-                                    </button>
-                                    <button type="button" class="preset-btn"
                                         onclick="selectPresetImage('tools_case', this)">
-                                        <img src="./images/tools_case.jpg" alt="Nářadí">
+                                        <img src="./images/tools_case.jpg" alt="Dílna a nářadí">
                                         <span>Nářadí</span>
                                     </button>
                                     <button type="button" class="preset-btn"
+                                        onclick="selectPresetImage('digital_multimeter', this)">
+                                        <img src="./images/digital_multimeter.jpg" alt="Pneumatiky / Technika">
+                                        <span>Auto / Moto</span>
+                                    </button>
+                                    <button type="button" class="preset-btn"
+                                        onclick="selectPresetImage('smc_fittings', this)">
+                                        <img src="./images/smc_fittings.jpg" alt="Zahrada a domácí produkty">
+                                        <span>Zahrada</span>
+                                    </button>
+                                    <button type="button" class="preset-btn"
                                         onclick="selectPresetImage('it_monitor', this)">
-                                        <img src="./images/it_monitor.jpg" alt="Monitor">
-                                        <span>IT Monitor</span>
+                                        <img src="./images/it_monitor.jpg" alt="Sport a nosič">
+                                        <span>Sport / Nosič</span>
                                     </button>
                                     <button type="button" class="preset-btn"
                                         onclick="selectPresetImage('ergonomic_chair', this)">
-                                        <img src="./images/ergonomic_chair.jpg" alt="Židle">
-                                        <span>Kancelář</span>
+                                        <img src="./images/ergonomic_chair.jpg" alt="Domov a nábytek">
+                                        <span>Dům / Nábytek</span>
+                                    </button>
+                                    <button type="button" class="preset-btn"
+                                        onclick="selectPresetImage('smc_valve_cylinder', this)">
+                                        <img src="./images/smc_valve_cylinder.jpg" alt="Rotavátor / Stroje">
+                                        <span>Stroje</span>
                                     </button>
                                 </div>
                                 <input type="hidden" id="selected-preset-image" name="preset_image" value="">
@@ -648,10 +915,480 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeNewItemModal()">Zrušit</button>
                     <button type="submit" class="btn btn-primary btn-lg" id="submit-item-btn">
-                        <i class="fa-solid fa-check"></i> Zveřejnit nabídku
+                        <i class="fa-solid fa-check"></i> Zveřejnit nabídku v komunitě
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- REPORT MODAL (FR-12: NAHLÁŠENÍ OBSAHU) -->
+    <div id="report-modal" class="modal-overlay" onclick="if(event.target === this) closeReportModal()">
+        <div class="modal-container" style="max-width: 520px;">
+            <button class="modal-close-btn" onclick="closeReportModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="modal-header">
+                <div class="modal-header-icon" style="background: #FEE2E2; color: #DC2626;">
+                    <i class="fa-solid fa-flag"></i>
+                </div>
+                <div>
+                    <h2>Nahlásit inzerát</h2>
+                    <p>Pomozte udržet komunitu férovou, bezpečnou a v souladu s pravidly.</p>
+                </div>
+            </div>
+
+            <form id="report-form" onsubmit="submitReport(event)">
+                <input type="hidden" id="report-item-id" value="">
+                
+                <div class="form-group full-width">
+                    <label for="report-reason">Důvod nahlášení *</label>
+                    <select id="report-reason" required>
+                        <option value="prohibited_items">⛔ Zakázané zboží (zbraně, drogy, alkohol, pyrotechnika, léky)</option>
+                        <option value="unauthorized_commercial">🏢 Komerční prodej / nekomunitní bazar</option>
+                        <option value="company_property">🏭 Podezření na neoprávněný firemní majetek</option>
+                        <option value="fraud_misleading">⚠️ Podvod, padělek nebo zavádějící popis</option>
+                        <option value="worktime_violation">⏰ Výzva k obchodování během pracovní směny</option>
+                        <option value="other">❓ Jiné porušení pravidel komunity</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="report-details">Podrobnosti a komentář pro moderátora *</label>
+                    <textarea id="report-details" rows="3" placeholder="Popište stručně, v čem nabídka porušuje pravidla..." required></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeReportModal()">Zrušit</button>
+                    <button type="submit" class="btn btn-primary" style="background: #DC2626; border-color: #DC2626;">
+                        <i class="fa-solid fa-paper-plane"></i> Odeslat moderátorům
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- COMMUNITY GUIDELINES & RULES MODAL (Kodex komunity, zakázané zboží, ochrana údajů) -->
+    <div id="guidelines-modal" class="modal-overlay" onclick="if(event.target === this) closeGuidelinesModal()">
+        <div class="modal-container" style="max-width: 760px;">
+            <button class="modal-close-btn" onclick="closeGuidelinesModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="modal-header">
+                <div class="modal-header-icon">
+                    <i class="fa-solid fa-book-bookmark"></i>
+                </div>
+                <div>
+                    <h2>Pravidla komunitního tržiště</h2>
+                    <p>Závazná pravidla pro všechny členy komunity zaměstnanců výrobního závodu.</p>
+                </div>
+            </div>
+
+            <div class="guidelines-grid">
+                <div class="guideline-card">
+                    <h5><i class="fa-solid fa-business-time"></i> Výhradně mimo pracovní dobu</h5>
+                    <p>Domluva i osobní předání předmětů se uskutečňuje výhradně před nebo po skončení pracovní směny. Používání aplikace nesmí narušovat pracovní povinnosti ani výrobu.</p>
+                </div>
+
+                <div class="guideline-card">
+                    <h5><i class="fa-solid fa-square-parking"></i> Pravidla areálu a parkoviště</h5>
+                    <p>Pokud se pro setkání využije parkoviště u závodu, musí se jednat o bezpečné místo, kde není blokována doprava, zásobování, požární přístup ani omezena bezpečnost.</p>
+                </div>
+
+                <div class="guideline-card">
+                    <h5><i class="fa-solid fa-scale-unbalanced-flip"></i> Vyloučení odpovědnosti firmy</h5>
+                    <p>Společnost není účastníkem transakcí, neposkytuje garanci kvality a neřeší případné spory. Každý člen odpovídá za pravdivost nabídky a stav zboží sám.</p>
+                </div>
+
+                <div class="guideline-card">
+                    <h5><i class="fa-solid fa-user-lock"></i> Soukromí a ochrana dat</h5>
+                    <p>Platforma funguje nezávisle na personálních systémech na soukromé kontakty. Vaše telefonní číslo a e-mail vidí druhá strana až při vzájemné domluvě.</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 18px;">
+                <h4 style="font-size: 1rem; color: #991B1B; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-ban"></i> Seznam zakázaného zboží a aktivit:
+                </h4>
+                <div class="banned-items-list">
+                    <span class="banned-chip"><i class="fa-solid fa-xmark"></i> Zbraně, střelivo & pyrotechnika</span>
+                    <span class="banned-chip"><i class="fa-solid fa-xmark"></i> Léky, drogy & regulované látky</span>
+                    <span class="banned-chip"><i class="fa-solid fa-xmark"></i> Alkohol, tabák & nikotinové výrobky</span>
+                    <span class="banned-chip"><i class="fa-solid fa-xmark"></i> Neoprávněný majetek firmy a nářadí bez povolení</span>
+                    <span class="banned-chip"><i class="fa-solid fa-xmark"></i> Odcizené věci a zboží nejasného původu</span>
+                    <span class="banned-chip"><i class="fa-solid fa-xmark"></i> Komerční prodej a přepouštění účtů cizím osobám</span>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="margin-top: 20px;">
+                <button type="button" class="btn btn-primary" onclick="closeGuidelinesModal()">
+                    <i class="fa-solid fa-check"></i> Rozumím a respektuji pravidla
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TRANSACTION COMPLETION & REVIEW MODAL (FR-10, FR-11) -->
+    <div id="complete-transaction-modal" class="modal-overlay" onclick="if(event.target === this) closeCompleteTransactionModal()">
+        <div class="modal-container" style="max-width: 520px;">
+            <button class="modal-close-btn" onclick="closeCompleteTransactionModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="modal-header">
+                <div class="modal-header-icon" style="background: #ECFDF5; color: #10B981;">
+                    <i class="fa-solid fa-handshake"></i>
+                </div>
+                <div>
+                    <h2>Ukončit transakci</h2>
+                    <p>Označte výsledek obchodu a podpořte férovost udělením hodnocení kolegovi.</p>
+                </div>
+            </div>
+
+            <form id="complete-transaction-form" onsubmit="submitTransactionCompletion(event)">
+                <div class="form-group full-width">
+                    <label for="completion-outcome">Výsledek transakce *</label>
+                    <select id="completion-outcome" required>
+                        <option value="sold">✅ Úspěšně prodáno</option>
+                        <option value="bought">✅ Úspěšně koupeno</option>
+                        <option value="swapped">🔄 Úspěšně vyměněno</option>
+                        <option value="given">🎁 Darováno / Předáno za odvoz</option>
+                        <option value="lent">🟠 Půjčeno kolegovi</option>
+                        <option value="rented">🔴 Pronajato</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="completion-buyer-select">S kým jste obchod uzavřeli? (volitelné)</label>
+                    <select id="completion-buyer-select">
+                        <option value="">Vyberte zájemce z chatu...</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Hodnocení férovosti a spolehlivosti kolegy:</label>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 4px;">
+                        <div class="star-rating-input">
+                            <input type="radio" id="star5" name="rating" value="5" checked><label for="star5" title="5 hvězdiček">★</label>
+                            <input type="radio" id="star4" name="rating" value="4"><label for="star4" title="4 hvězdičky">★</label>
+                            <input type="radio" id="star3" name="rating" value="3"><label for="star3" title="3 hvězdičky">★</label>
+                            <input type="radio" id="star2" name="rating" value="2"><label for="star2" title="2 hvězdičky">★</label>
+                            <input type="radio" id="star1" name="rating" value="1"><label for="star1" title="1 hvězdička">★</label>
+                        </div>
+                        <span style="font-size: 0.85rem; font-weight: 600; color: #B45309;">(Vynikající přístup)</span>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="completion-comment">Krátký komentář (zobrazí se v profilu kolegy)</label>
+                    <textarea id="completion-comment" rows="2" placeholder="např. Rychlé a přesné předání na parkovišti, doporučuji!"></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeCompleteTransactionModal()">Zrušit</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-check"></i> Potvrdit ukončení & uložit hodnocení
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODERATION QUEUE MODAL (FR-13, FR-14, NFR-06 - POUZE PRO MODERÁTORY) -->
+    <div id="moderation-modal" class="modal-overlay" onclick="if(event.target === this) closeModerationModal()">
+        <div class="modal-container" style="max-width: 860px;">
+            <button class="modal-close-btn" onclick="closeModerationModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="modal-header">
+                <div class="modal-header-icon" style="background: #FEE2E2; color: #DC2626;">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h2>Moderační centrum komunity</h2>
+                    <p>Prověřování nahlášených inzerátů a audit zásahů pro bezpečnost závodu.</p>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                <button class="btn btn-sm btn-primary" id="mod-filter-pending-btn" onclick="filterModerationList('pending')">
+                    Čekající nahlášení
+                </button>
+                <button class="btn btn-sm btn-outline" id="mod-filter-all-btn" onclick="filterModerationList('all')">
+                    Historie všech
+                </button>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="mod-queue-table">
+                    <thead>
+                        <tr>
+                            <th>Inzerát / Zboží</th>
+                            <th>Nahlásil</th>
+                            <th>Důvod & Komentář</th>
+                            <th>Stav</th>
+                            <th>Akce moderátora</th>
+                        </tr>
+                    </thead>
+                    <tbody id="moderation-queue-tbody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="modal-footer" style="margin-top: 16px;">
+                <button type="button" class="btn btn-outline" onclick="closeModerationModal()">Zavřít</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. USER MANAGEMENT MODAL (ADMIN ONLY) -->
+    <div id="user-management-modal" class="modal-overlay" onclick="if(event.target === this) closeUserManagementModal()">
+        <div class="modal-container" style="max-width: 1060px;">
+            <button class="modal-close-btn" onclick="closeUserManagementModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="modal-header">
+                <div class="modal-header-icon" style="background: #E0E7FF; color: #4338CA;">
+                    <i class="fa-solid fa-users-gear"></i>
+                </div>
+                <div>
+                    <h2>Správa uživatelů a rolí komunity</h2>
+                    <p>Přehled zaměstnanců, udělování moderátorů, vytváření firemních účtů SMC a správa hesel.</p>
+                </div>
+            </div>
+
+            <!-- Toolbar: Search, Role Filter, Per-Page Selector, Create Company Button -->
+            <div class="user-manage-toolbar">
+                <div class="toolbar-search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="manage-user-search" placeholder="Hledat podle jména, příjmení, přihlašovacího jména..." oninput="resetUserPageAndRender()">
+                </div>
+
+                <div class="toolbar-filter-box">
+                    <label for="manage-user-role-filter"><i class="fa-solid fa-filter"></i> Role:</label>
+                    <select id="manage-user-role-filter" onchange="resetUserPageAndRender()">
+                        <option value="">Všechny role</option>
+                        <option value="user">Běžní uživatelé</option>
+                        <option value="moderator">Moderátoři</option>
+                        <option value="official_smc">Firemní účty SMC</option>
+                        <option value="admin">Administrátoři</option>
+                    </select>
+                </div>
+
+                <div class="toolbar-filter-box">
+                    <label for="manage-user-per-page"><i class="fa-solid fa-list-ol"></i> Zobrazit:</label>
+                    <select id="manage-user-per-page" onchange="changeUserPageSize(this.value)">
+                        <option value="10" selected>10 uživatelů</option>
+                        <option value="20">20 uživatelů</option>
+                        <option value="30">30 uživatelů</option>
+                        <option value="40">40 uživatelů</option>
+                        <option value="50">50 uživatelů</option>
+                    </select>
+                </div>
+
+                <button type="button" class="btn btn-primary" onclick="openCreateCompanyModal()">
+                    <i class="fa-solid fa-building-circle-plus"></i> Vytvořit nový firemní účet SMC
+                </button>
+            </div>
+
+            <!-- Users Table -->
+            <div class="user-manage-table-container">
+                <table class="user-manage-table">
+                    <thead>
+                        <tr>
+                            <th>Zaměstnanec / Uživatel</th>
+                            <th>Oddělení & Lokalita</th>
+                            <th>Role & Oprávnění</th>
+                            <th>Inzeráty</th>
+                            <th>Akce administrátora</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-manage-tbody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Bar (Šipky & Počítadlo stránek) -->
+            <div class="user-pagination-bar" id="user-pagination-bar">
+                <div class="pagination-info" id="user-pagination-info">
+                    Načítám stránkování...
+                </div>
+                <div class="pagination-controls">
+                    <button type="button" class="pagination-nav-btn" id="user-page-prev" onclick="navigateUserPage(-1)" title="Předchozí stránka (Klávesa ◀)">
+                        <i class="fa-solid fa-chevron-left"></i> Předchozí
+                    </button>
+                    <div class="pagination-pages" id="user-pagination-pages">
+                        <!-- Čísla stránek -->
+                    </div>
+                    <button type="button" class="pagination-nav-btn" id="user-page-next" onclick="navigateUserPage(1)" title="Další stránka (Klávesa ▶)">
+                        Další <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="pagination-keyboard-hint" title="Můžete listovat pomocí šipek doleva a doprava na klávesnici">
+                    <i class="fa-regular fa-keyboard"></i> Šipky <code>◀</code> <code>▶</code>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+                <span id="user-manage-total-count" style="font-size: 0.85rem; color: var(--text-muted);">Načítám...</span>
+                <button type="button" class="btn btn-outline" onclick="closeUserManagementModal()">Zavřít správu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. CREATE COMPANY ACCOUNT MODAL (ADMIN ONLY) -->
+    <div id="create-company-modal" class="modal-overlay" onclick="if(event.target === this) closeCreateCompanyModal()">
+        <div class="modal-container" style="max-width: 580px;">
+            <button class="modal-close-btn" onclick="closeCreateCompanyModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="modal-header">
+                <div class="modal-header-icon" style="background: #E0F2FE; color: #005BAC;">
+                    <i class="fa-solid fa-building-circle-check"></i>
+                </div>
+                <div>
+                    <h2>Vytvořit nový firemní účet SMC</h2>
+                    <p>Zřízení oficiálního firemního účtu pro prodej vyřazeného vybavení nebo repasi.</p>
+                </div>
+            </div>
+
+            <form id="create-company-form" onsubmit="submitCreateCompany(event)">
+                <div class="form-group full-width">
+                    <label for="company-name">Oficiální název účtu / provozu *</label>
+                    <input type="text" id="company-name" placeholder="např. SMC Výdejna repasovaného nářadí" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="company-username">Přihlašovací jméno (username) *</label>
+                        <input type="text" id="company-username" placeholder="např. smc_repas" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="company-password">Přihlašovací heslo *</label>
+                        <input type="text" id="company-password" value="1234" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="company-email">Kontaktní e-mail</label>
+                        <input type="email" id="company-email" placeholder="odprodej@smc.cz">
+                    </div>
+                    <div class="form-group">
+                        <label for="company-phone">Kontaktní telefon / klapka</label>
+                        <input type="text" id="company-phone" placeholder="+421 41 500 1234">
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="company-department">Oddělení / Středisko</label>
+                    <input type="text" id="company-department" placeholder="např. Správa majetku & Technická údržba">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="company-location">Místo výdeje / Převzetí zboží</label>
+                    <input type="text" id="company-location" placeholder="např. Areál SMC • Výdejní sklad budova B (mimo prac. dobu)">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="company-bio">Popis činnosti účtu</label>
+                    <textarea id="company-bio" rows="2" placeholder="Oficiální nabídka odprodeje a darování vyřazeného dílenského majetku SMC."></textarea>
+                </div>
+
+                <div id="create-company-error" class="error-banner" style="display: none;"></div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeCreateCompanyModal()">Zrušit</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-check"></i> Vytvořit firemní účet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. CHANGE PASSWORD MODAL (ADMIN ONLY) -->
+    <div id="change-password-modal" class="modal-overlay" onclick="if(event.target === this) closeChangePasswordModal()">
+        <div class="modal-container" style="max-width: 440px;">
+            <button class="modal-close-btn" onclick="closeChangePasswordModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="modal-header">
+                <div class="modal-header-icon" style="background: #FEF3C7; color: #D97706;">
+                    <i class="fa-solid fa-key"></i>
+                </div>
+                <div>
+                    <h2>Změna hesla uživatele</h2>
+                    <p id="change-pwd-user-desc">Nastavení nového přístupového hesla.</p>
+                </div>
+            </div>
+
+            <form id="change-password-form" onsubmit="submitChangePassword(event)">
+                <input type="hidden" id="change-pwd-user-id" value="">
+
+                <div class="form-group full-width">
+                    <label for="change-pwd-new-password">Nové heslo *</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="text" id="change-pwd-new-password" placeholder="Zadejte nové heslo (např. 1234)" required minlength="3">
+                    </div>
+                    <span style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; display: block;">Minimálně 3 znaky. Uživateli bude heslo ihned změněno.</span>
+                </div>
+
+                <div id="change-pwd-error" class="error-banner" style="display: none;"></div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeChangePasswordModal()">Zrušit</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-check"></i> Uložit nové heslo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. USER PROFILE & LISTINGS MODAL (ADMIN & COMMUNITY) -->
+    <div id="user-profile-modal" class="modal-overlay" onclick="if(event.target === this) closeUserProfileModal()">
+        <div class="modal-container" style="max-width: 860px;">
+            <button class="modal-close-btn" onclick="closeUserProfileModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <!-- User Header Card -->
+            <div class="profile-modal-user-card" id="profile-modal-user-card">
+                <div class="profile-modal-avatar" id="profile-modal-avatar">MK</div>
+                <div class="profile-modal-info">
+                    <div class="profile-modal-title-row">
+                        <h2 id="profile-modal-name">Jméno Příjmení</h2>
+                        <span id="profile-modal-role-badge" class="badge">Role</span>
+                        <span id="profile-modal-rating-pill" class="user-rating-pill"><i class="fa-solid fa-star"></i> 5.0 (0)</span>
+                    </div>
+                    <div class="profile-modal-meta-grid">
+                        <div><i class="fa-solid fa-user"></i> <strong id="profile-modal-username">@username</strong></div>
+                        <div><i class="fa-solid fa-briefcase"></i> <span id="profile-modal-dept">Montáž</span></div>
+                        <div><i class="fa-solid fa-location-dot"></i> <span id="profile-modal-location">Lokalita</span></div>
+                        <div><i class="fa-solid fa-envelope"></i> <span id="profile-modal-email">email@zamestnanec.cz</span></div>
+                        <div><i class="fa-solid fa-phone"></i> <span id="profile-modal-phone">+421 9...</span></div>
+                        <div><i class="fa-solid fa-calendar"></i> Členem od: <span id="profile-modal-reg-date">-</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Listings Section -->
+            <div class="profile-modal-items-section">
+                <div class="section-title-row">
+                    <h3><i class="fa-solid fa-boxes-stacked"></i> Zveřejněné inzeráty uživatele (<span id="profile-modal-items-count">0</span>)</h3>
+                </div>
+
+                <div id="profile-modal-items-grid" class="profile-items-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="modal-footer" style="margin-top: 16px;">
+                <button type="button" class="btn btn-outline" onclick="closeUserProfileModal()">Zavřít profil</button>
+            </div>
         </div>
     </div>
 

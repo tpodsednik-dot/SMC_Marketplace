@@ -1,11 +1,11 @@
-/**
+﻿/**
  * SMC MARKETPLACE - LOKÁLNÍ DATABÁZOVÝ ENGINE (SQLITE SCHEMA V JAVASCRIPTU)
  * Všechny obrázky jsou uloženy PŘÍMO V DATABÁZI jako Base64 kód (Data URLs).
  * Žádné externí soubory s obrázky nejsou potřeba – vše je uvnitř databáze.
  */
 
-const DB_STORAGE_KEY = 'smc_marketplace_db_v2_b64';
-const SESSION_STORAGE_KEY = 'smc_marketplace_session_user';
+const DB_STORAGE_KEY = 'smc_community_marketplace_db_v7';
+const SESSION_STORAGE_KEY = 'smc_community_session_user_v7';
 
 // Výchozí firemní obrázky SMC v Base64 kódu (uloženy přímo v kódu databáze)
 const EMBEDDED_IMAGES = {
@@ -51,186 +51,1201 @@ class SMCLocalDatabase {
 
     initDefaultDatabase() {
         const initialDb = {
+            community_codes: ['ZAVOD2026', 'SMC450', 'KOMUNITA', 'HALA1', 'VYROBA', 'SMC_OFFICIAL'],
             users: [
                 {
                     id: 1,
-                    username: 'SMC',
+                    username: 'michal',
                     password: '1234',
-                    name: 'SMC Corporation (Oficiální)',
-                    role: 'admin',
-                    department: 'Centrální sklad & Správa techniky',
-                    email: 'marketplace@smc.cz',
-                    phone: '+420 541 424 611',
-                    avatar_text: 'SMC'
+                    name: 'Michal Kováč',
+                    display_name: 'Michal (Směna B - Montáž)',
+                    role: 'user',
+                    department: 'Směna B • Montážní hala',
+                    location: 'Bytča & okolí',
+                    email: 'michal.kovac.privat@gmail.com',
+                    phone: '+421 905 123 456',
+                    avatar_text: 'MK',
+                    rating: 4.9,
+                    rating_count: 14,
+                    registered_at: '2026-01-15T09:30:00Z',
+                    bio: 'Zaměstnanec montáže, ve volném čase rád kutilstvím a opravuji jízdní kola.'
                 },
                 {
                     id: 2,
-                    username: 'user1',
+                    username: 'lucia',
                     password: '1234',
-                    name: 'Jan Novák',
-                    role: 'employee',
-                    department: 'Výroba & Servis pneumatik',
-                    email: 'jan.novak@smc-cz.internal',
-                    phone: '+420 731 100 201',
-                    avatar_text: 'JN'
+                    name: 'Lucie Molnárová',
+                    display_name: 'Lucie (Logistika & Sklad)',
+                    role: 'user',
+                    department: 'Denní směna • Logistika a příjem',
+                    location: 'Žilina - Vlčince',
+                    email: 'lucia.molnarova77@azet.sk',
+                    phone: '+421 911 234 567',
+                    avatar_text: 'LM',
+                    rating: 5.0,
+                    rating_count: 8,
+                    registered_at: '2026-02-01T14:20:00Z',
+                    bio: 'Maminka dvou dětí, posílám dál věci po dcerce a nabízím bio ovoce z vlastního sadu.'
                 },
                 {
                     id: 3,
-                    username: 'user2',
+                    username: 'peter_mod',
                     password: '1234',
-                    name: 'Petra Dvořáková',
-                    role: 'employee',
-                    department: 'Logistika, IT & Nákup',
-                    email: 'petra.dvorakova@smc-cz.internal',
-                    phone: '+420 732 200 302',
-                    avatar_text: 'PD'
+                    name: 'Petr Varga',
+                    display_name: 'Petr Varga (Správce komunity)',
+                    role: 'moderator',
+                    department: 'Údržba strojů • Závodní výbor',
+                    location: 'Kysucké Nové Mesto',
+                    email: 'peter.varga.komunita@centrum.sk',
+                    phone: '+421 908 345 678',
+                    avatar_text: 'PV',
+                    rating: 4.8,
+                    rating_count: 22,
+                    registered_at: '2025-11-10T08:00:00Z',
+                    bio: 'Dobrovolný moderátor naší zaměstnanecké komunity. Záleží mi na férovém a přátelském prostředí.'
+                },
+                {
+                    id: 4,
+                    username: 'smc',
+                    password: '1234',
+                    name: 'SMC Průmyslová Správa',
+                    display_name: 'Oficiální prodej SMC (Vyřazené vybavení)',
+                    role: 'official_smc',
+                    is_official: true,
+                    department: 'Správa majetku & Technická údržba závodu',
+                    location: 'Areál závodu SMC • Výdejna expedice / Vrátnice',
+                    email: 'odprodej.vybaveni@smc.cz',
+                    phone: '+421 41 500 1234 (klapka 210)',
+                    avatar_text: 'SMC',
+                    rating: 5.0,
+                    rating_count: 48,
+                    registered_at: '2025-01-01T08:00:00Z',
+                    bio: 'Oficiální firemní účet společnosti SMC pro odprodej a darování vyřazeného, plně funkčního nebo modernizovaného vybavení závodu pro zaměstnance (kancelářský nábytek, měřicí technika, servisní nářadí, IT monitory). Veškeré zboží má protokol o vyřazení.'
+                },
+                {
+                    id: 5,
+                    username: 'admin',
+                    password: '1234',
+                    name: 'Hlavní Administrátor',
+                    display_name: 'Hlavní Administrátor (Správce)',
+                    role: 'admin',
+                    department: 'Správa komunity & Bezpečnost závodu',
+                    location: 'Centrála závodu SMC',
+                    email: 'admin.komunita@smc.cz',
+                    phone: '+421 900 111 222',
+                    avatar_text: 'ADM',
+                    rating: 5.0,
+                    rating_count: 50,
+                    registered_at: '2024-01-01T08:00:00Z',
+                    bio: 'Hlavní administrátor komunitního tržiště. Správa uživatelských účtů, moderace obsahu a audit transakcí.'
+                },
+                {
+                    id: 6,
+                    username: 'tomas_n',
+                    password: '1234',
+                    name: 'Tomáš Novák',
+                    display_name: 'Tomáš Novák (Montáž A)',
+                    role: 'user',
+                    department: 'Montážní linka A',
+                    location: 'Bytča',
+                    email: 'tomas.novak@gmail.com',
+                    phone: '+421 902 111 222',
+                    avatar_text: 'TN',
+                    rating: 4.8,
+                    rating_count: 11,
+                    registered_at: '2026-02-10T10:00:00Z',
+                    bio: 'Technik montážní linky A.'
+                },
+                {
+                    id: 7,
+                    username: 'zuzka_h',
+                    password: '1234',
+                    name: 'Zuzana Horváthová',
+                    display_name: 'Zuzana Horváthová (QA)',
+                    role: 'user',
+                    department: 'Kontrola kvality (QA)',
+                    location: 'Žilina',
+                    email: 'zuzana.h@azet.sk',
+                    phone: '+421 903 222 333',
+                    avatar_text: 'ZH',
+                    rating: 4.9,
+                    rating_count: 15,
+                    registered_at: '2026-02-12T08:30:00Z',
+                    bio: 'Inspektorka jakosti.'
+                },
+                {
+                    id: 8,
+                    username: 'martin_k',
+                    password: '1234',
+                    name: 'Martin Kříž',
+                    display_name: 'Martin Kříž (CNC)',
+                    role: 'user',
+                    department: 'CNC Frézování & Soustružení',
+                    location: 'Kysucké Nové Mesto',
+                    email: 'martin.kriz@centrum.sk',
+                    phone: '+421 904 333 444',
+                    avatar_text: 'MK',
+                    rating: 5.0,
+                    rating_count: 9,
+                    registered_at: '2026-01-20T11:15:00Z',
+                    bio: 'CNC operátor a kutil.'
+                },
+                {
+                    id: 9,
+                    username: 'jana_d',
+                    password: '1234',
+                    name: 'Jana Dvořáková',
+                    display_name: 'Jana Dvořáková (HR)',
+                    role: 'user',
+                    department: 'Personální & HR oddělení',
+                    location: 'Považská Bystrica',
+                    email: 'jana.dvorakova@post.sk',
+                    phone: '+421 905 444 555',
+                    avatar_text: 'JD',
+                    rating: 4.7,
+                    rating_count: 6,
+                    registered_at: '2026-01-25T14:00:00Z',
+                    bio: 'HR koordinátorka.'
+                },
+                {
+                    id: 10,
+                    username: 'david_p',
+                    password: '1234',
+                    name: 'David Procházka',
+                    display_name: 'David Procházka (Elektro)',
+                    role: 'user',
+                    department: 'Elektroúdržba & Automatizace',
+                    location: 'Žilina',
+                    email: 'david.p@gmail.com',
+                    phone: '+421 906 555 666',
+                    avatar_text: 'DP',
+                    rating: 4.9,
+                    rating_count: 18,
+                    registered_at: '2026-02-05T09:45:00Z',
+                    bio: 'Elektromechanik MaR.'
+                },
+                {
+                    id: 11,
+                    username: 'katka_c',
+                    password: '1234',
+                    name: 'Kateřina Černá',
+                    display_name: 'Kateřina Černá (Finance)',
+                    role: 'user',
+                    department: 'Finanční účtárna závodu',
+                    location: 'Bytča',
+                    email: 'katerina.cerna@azet.sk',
+                    phone: '+421 907 666 777',
+                    avatar_text: 'KC',
+                    rating: 5.0,
+                    rating_count: 12,
+                    registered_at: '2026-01-18T13:20:00Z',
+                    bio: 'Účetní závodu.'
+                },
+                {
+                    id: 12,
+                    username: 'jakub_n',
+                    password: '1234',
+                    name: 'Jakub Němec',
+                    display_name: 'Jakub Němec (Lisovna)',
+                    role: 'user',
+                    department: 'Směna C • Lisovna plechů',
+                    location: 'Čadca',
+                    email: 'jakub.nemec@gmail.com',
+                    phone: '+421 908 777 888',
+                    avatar_text: 'JN',
+                    rating: 4.6,
+                    rating_count: 8,
+                    registered_at: '2026-02-14T07:50:00Z',
+                    bio: 'Seřizovač lisů.'
+                },
+                {
+                    id: 13,
+                    username: 'veronika_p',
+                    password: '1234',
+                    name: 'Veronika Pospíšilová',
+                    display_name: 'Veronika Pospíšilová (Logistika)',
+                    role: 'user',
+                    department: 'Vstupní a výstupní logistika',
+                    location: 'Martin',
+                    email: 'veronika.p@centrum.sk',
+                    phone: '+421 909 888 999',
+                    avatar_text: 'VP',
+                    rating: 4.8,
+                    rating_count: 14,
+                    registered_at: '2026-01-29T16:10:00Z',
+                    bio: 'Disponentka dopravy.'
+                },
+                {
+                    id: 14,
+                    username: 'jan_pokorny',
+                    password: '1234',
+                    name: 'Jan Pokorný',
+                    display_name: 'Jan Pokorný (Moderátor • Nástrojárna)',
+                    role: 'moderator',
+                    department: 'Nástrojárna & Formy',
+                    location: 'Žilina',
+                    email: 'jan.pokorny.mod@centrum.sk',
+                    phone: '+421 910 999 000',
+                    avatar_text: 'JP',
+                    rating: 4.9,
+                    rating_count: 25,
+                    registered_at: '2025-12-01T08:00:00Z',
+                    bio: 'Mistr nástrojárny a dobrovolný moderátor komunity.'
+                },
+                {
+                    id: 15,
+                    username: 'misa_m',
+                    password: '1234',
+                    name: 'Michaela Marešová',
+                    display_name: 'Michaela Marešová (Expedice)',
+                    role: 'user',
+                    department: 'Balení a expedice výrobků',
+                    location: 'Rajec',
+                    email: 'michaela.m@azet.sk',
+                    phone: '+421 911 000 111',
+                    avatar_text: 'MM',
+                    rating: 5.0,
+                    rating_count: 10,
+                    registered_at: '2026-02-02T12:00:00Z',
+                    bio: 'Pracovnice expedice.'
+                },
+                {
+                    id: 16,
+                    username: 'jiri_v',
+                    password: '1234',
+                    name: 'Jiří Veselý',
+                    display_name: 'Jiří Veselý (Robotika)',
+                    role: 'user',
+                    department: 'Robotika & Pneumatické linky',
+                    location: 'Bytča',
+                    email: 'jiri.vesely@gmail.com',
+                    phone: '+421 912 111 222',
+                    avatar_text: 'JV',
+                    rating: 4.7,
+                    rating_count: 7,
+                    registered_at: '2026-02-08T15:30:00Z',
+                    bio: 'Robotik SMC linek.'
+                },
+                {
+                    id: 17,
+                    username: 'lenka_r',
+                    password: '1234',
+                    name: 'Lenka Růžičková',
+                    display_name: 'Lenka Růžičková (BOZP)',
+                    role: 'user',
+                    department: 'Bezpečnost práce BOZP & PO',
+                    location: 'Žilina',
+                    email: 'lenka.r@post.sk',
+                    phone: '+421 913 222 333',
+                    avatar_text: 'LR',
+                    rating: 5.0,
+                    rating_count: 16,
+                    registered_at: '2026-01-10T10:20:00Z',
+                    bio: 'Bezpečnostní technička.'
+                },
+                {
+                    id: 18,
+                    username: 'radek_j',
+                    password: '1234',
+                    name: 'Radek Jelínek',
+                    display_name: 'Radek Jelínek (Sklad)',
+                    role: 'user',
+                    department: 'Sklad surovin a polotovarů',
+                    location: 'Považská Bystrica',
+                    email: 'radek.j@azet.sk',
+                    phone: '+421 914 333 444',
+                    avatar_text: 'RJ',
+                    rating: 4.5,
+                    rating_count: 5,
+                    registered_at: '2026-02-15T09:10:00Z',
+                    bio: 'Skladník.'
+                },
+                {
+                    id: 19,
+                    username: 'simona_s',
+                    password: '1234',
+                    name: 'Simona Sedláčková',
+                    display_name: 'Simona Sedláčková (R&D)',
+                    role: 'user',
+                    department: 'Technologický vývoj & R&D',
+                    location: 'Žilina',
+                    email: 'simona.s@gmail.com',
+                    phone: '+421 915 444 555',
+                    avatar_text: 'SS',
+                    rating: 4.9,
+                    rating_count: 13,
+                    registered_at: '2026-01-22T14:45:00Z',
+                    bio: 'Vývojová inženýrka.'
+                },
+                {
+                    id: 20,
+                    username: 'filip_m',
+                    password: '1234',
+                    name: 'Filip Mach',
+                    display_name: 'Filip Mach (Údržba)',
+                    role: 'user',
+                    department: 'Údržba kompresorových stanic',
+                    location: 'Kysucké Nové Mesto',
+                    email: 'filip.mach@centrum.sk',
+                    phone: '+421 916 555 666',
+                    avatar_text: 'FM',
+                    rating: 4.8,
+                    rating_count: 12,
+                    registered_at: '2026-01-30T11:00:00Z',
+                    bio: 'Servisní mechanik.'
+                },
+                {
+                    id: 21,
+                    username: 'bara_u',
+                    password: '1234',
+                    name: 'Barbora Urbanová',
+                    display_name: 'Barbora Urbanová (Montáž)',
+                    role: 'user',
+                    department: 'Denní směna • Montáž ventilů',
+                    location: 'Bytča',
+                    email: 'barbora.u@gmail.com',
+                    phone: '+421 917 666 777',
+                    avatar_text: 'BU',
+                    rating: 4.9,
+                    rating_count: 9,
+                    registered_at: '2026-02-03T08:15:00Z',
+                    bio: 'Montážní technička.'
+                },
+                {
+                    id: 22,
+                    username: 'lukas_h',
+                    password: '1234',
+                    name: 'Lukáš Holub',
+                    display_name: 'Lukáš Holub (Zkušebna)',
+                    role: 'user',
+                    department: 'Technická zkušebna výrobků',
+                    location: 'Žilina',
+                    email: 'lukas.h@azet.sk',
+                    phone: '+421 918 777 888',
+                    avatar_text: 'LH',
+                    rating: 4.6,
+                    rating_count: 7,
+                    registered_at: '2026-02-11T13:40:00Z',
+                    bio: 'Testovací technik.'
+                },
+                {
+                    id: 23,
+                    username: 'marketa_k',
+                    password: '1234',
+                    name: 'Markéta Králová',
+                    display_name: 'Markéta Králová (Dispečink)',
+                    role: 'user',
+                    department: 'Plánování výroby & Dispečink',
+                    location: 'Martin',
+                    email: 'marketa.k@post.sk',
+                    phone: '+421 919 888 999',
+                    avatar_text: 'MK',
+                    rating: 5.0,
+                    rating_count: 17,
+                    registered_at: '2026-01-14T10:00:00Z',
+                    bio: 'Plánovačka výroby.'
+                },
+                {
+                    id: 24,
+                    username: 'petr_simek',
+                    password: '1234',
+                    name: 'Petr Šimek',
+                    display_name: 'Petr Šimek (Zámečník)',
+                    role: 'user',
+                    department: 'Zámečnická dílna závodu',
+                    location: 'Čadca',
+                    email: 'petr.simek@gmail.com',
+                    phone: '+421 920 999 000',
+                    avatar_text: 'PS',
+                    rating: 4.8,
+                    rating_count: 11,
+                    registered_at: '2026-01-28T09:25:00Z',
+                    bio: 'Zámečník údržby.'
+                },
+                {
+                    id: 25,
+                    username: 'eva_b',
+                    password: '1234',
+                    name: 'Eva Benešová',
+                    display_name: 'Eva Benešová (Recepce)',
+                    role: 'user',
+                    department: 'Recepce & Správa budov',
+                    location: 'Žilina',
+                    email: 'eva.benesova@azet.sk',
+                    phone: '+421 921 000 111',
+                    avatar_text: 'EB',
+                    rating: 4.9,
+                    rating_count: 14,
+                    registered_at: '2026-02-06T08:50:00Z',
+                    bio: 'Recepční centrály.'
+                },
+                {
+                    id: 26,
+                    username: 'daniel_f',
+                    password: '1234',
+                    name: 'Daniel Fiala',
+                    display_name: 'Daniel Fiala (ISO)',
+                    role: 'user',
+                    department: 'Řízení jakosti ISO & Audity',
+                    location: 'Bytča',
+                    email: 'daniel.f@gmail.com',
+                    phone: '+421 922 111 222',
+                    avatar_text: 'DF',
+                    rating: 4.7,
+                    rating_count: 8,
+                    registered_at: '2026-02-09T14:15:00Z',
+                    bio: 'Auditor kvality.'
+                },
+                {
+                    id: 27,
+                    username: 'tereza_m',
+                    password: '1234',
+                    name: 'Tereza Malá',
+                    display_name: 'Tereza Malá (Laboratoř)',
+                    role: 'user',
+                    department: 'Laboratoř metalografie',
+                    location: 'Žilina',
+                    email: 'tereza.m@centrum.sk',
+                    phone: '+421 923 222 333',
+                    avatar_text: 'TM',
+                    rating: 5.0,
+                    rating_count: 19,
+                    registered_at: '2026-01-16T11:30:00Z',
+                    bio: 'Laborantka.'
+                },
+                {
+                    id: 28,
+                    username: 'roman_k',
+                    password: '1234',
+                    name: 'Roman Kolář',
+                    display_name: 'Roman Kolář (Lakovna)',
+                    role: 'user',
+                    department: 'Lakovna & Práškové lakování',
+                    location: 'Považská Bystrica',
+                    email: 'roman.k@azet.sk',
+                    phone: '+421 924 333 444',
+                    avatar_text: 'RK',
+                    rating: 4.4,
+                    rating_count: 6,
+                    registered_at: '2026-02-13T16:00:00Z',
+                    bio: 'Laktař.'
+                },
+                {
+                    id: 29,
+                    username: 'monika_v',
+                    password: '1234',
+                    name: 'Monika Vlčková',
+                    display_name: 'Monika Vlčková (Stravování)',
+                    role: 'user',
+                    department: 'Závodní jídelna & Stravování',
+                    location: 'Kysucké Nové Mesto',
+                    email: 'monika.v@post.sk',
+                    phone: '+421 925 444 555',
+                    avatar_text: 'MV',
+                    rating: 4.9,
+                    rating_count: 22,
+                    registered_at: '2026-01-19T07:40:00Z',
+                    bio: 'Vedoucí jídelny.'
+                },
+                {
+                    id: 30,
+                    username: 'patrik_b',
+                    password: '1234',
+                    name: 'Patrik Bartoš',
+                    display_name: 'Patrik Bartoš (Montáž A)',
+                    role: 'user',
+                    department: 'Směna A • Montáž pístů',
+                    location: 'Bytča',
+                    email: 'patrik.b@gmail.com',
+                    phone: '+421 926 555 666',
+                    avatar_text: 'PB',
+                    rating: 4.8,
+                    rating_count: 10,
+                    registered_at: '2026-02-04T12:20:00Z',
+                    bio: 'Operátor montáže.'
+                },
+                {
+                    id: 31,
+                    username: 'alena_s',
+                    password: '1234',
+                    name: 'Alena Štěpánková',
+                    display_name: 'Alena Štěpánková (Sanitace)',
+                    role: 'user',
+                    department: 'Úklid & Sanitace provozu',
+                    location: 'Žilina',
+                    email: 'alena.s@azet.sk',
+                    phone: '+421 927 666 777',
+                    avatar_text: 'AS',
+                    rating: 5.0,
+                    rating_count: 15,
+                    registered_at: '2026-01-24T15:10:00Z',
+                    bio: 'Pracovnice úklidu.'
+                },
+                {
+                    id: 32,
+                    username: 'richard_b',
+                    password: '1234',
+                    name: 'Richard Blažek',
+                    display_name: 'Richard Blažek (Moderátor • IT)',
+                    role: 'moderator',
+                    department: 'IT podpora & Správa sítě závodu',
+                    location: 'Žilina',
+                    email: 'richard.blazek.mod@centrum.sk',
+                    phone: '+421 928 777 888',
+                    avatar_text: 'RB',
+                    rating: 4.9,
+                    rating_count: 28,
+                    registered_at: '2025-10-15T09:00:00Z',
+                    bio: 'Síťový administrátor a moderátor komunitního trhu.'
+                },
+                {
+                    id: 33,
+                    username: 'petra_h',
+                    password: '1234',
+                    name: 'Petra Háková',
+                    display_name: 'Petra Háková (Kantýna)',
+                    role: 'user',
+                    department: 'Podniková prodejna a kantýna',
+                    location: 'Rajec',
+                    email: 'petra.h@gmail.com',
+                    phone: '+421 929 888 999',
+                    avatar_text: 'PH',
+                    rating: 4.8,
+                    rating_count: 13,
+                    registered_at: '2026-02-07T10:45:00Z',
+                    bio: 'Vedoucí kantýny.'
+                },
+                {
+                    id: 34,
+                    username: 'robert_k',
+                    password: '1234',
+                    name: 'Robert Kopecký',
+                    display_name: 'Robert Kopecký (Svařovna)',
+                    role: 'user',
+                    department: 'Svařovna & Robotické buňky',
+                    location: 'Čadca',
+                    email: 'robert.k@azet.sk',
+                    phone: '+421 930 999 000',
+                    avatar_text: 'RK',
+                    rating: 4.6,
+                    rating_count: 8,
+                    registered_at: '2026-01-27T13:00:00Z',
+                    bio: 'Svářeč robotických linek.'
+                },
+                {
+                    id: 35,
+                    username: 'ivana_s',
+                    password: '1234',
+                    name: 'Ivana Soukupová',
+                    display_name: 'Ivana Soukupová (Nákup)',
+                    role: 'user',
+                    department: 'Nákup materiálu a subdodávky',
+                    location: 'Martin',
+                    email: 'ivana.s@post.sk',
+                    phone: '+421 931 000 111',
+                    avatar_text: 'IS',
+                    rating: 5.0,
+                    rating_count: 20,
+                    registered_at: '2026-01-12T08:30:00Z',
+                    bio: 'Nákupčí komponentů.'
+                },
+                {
+                    id: 36,
+                    username: 'ondrej_t',
+                    password: '1234',
+                    name: 'Ondřej Tichý',
+                    display_name: 'Ondřej Tichý (Výdejna nářadí)',
+                    role: 'user',
+                    department: 'Výdej nářadí a přípravků',
+                    location: 'Bytča',
+                    email: 'ondrej.t@gmail.com',
+                    phone: '+421 932 111 222',
+                    avatar_text: 'OT',
+                    rating: 4.7,
+                    rating_count: 9,
+                    registered_at: '2026-02-16T11:20:00Z',
+                    bio: 'Správce výdejny.'
+                },
+                {
+                    id: 37,
+                    username: 'gabriela_b',
+                    password: '1234',
+                    name: 'Gabriela Beranová',
+                    display_name: 'Gabriela Beranová (Elektromontáž)',
+                    role: 'user',
+                    department: 'Montáž elektropohonů',
+                    location: 'Žilina',
+                    email: 'gabriela.b@centrum.sk',
+                    phone: '+421 933 222 333',
+                    avatar_text: 'GB',
+                    rating: 4.9,
+                    rating_count: 11,
+                    registered_at: '2026-01-23T14:10:00Z',
+                    bio: 'Elektromontérka.'
+                },
+                {
+                    id: 38,
+                    username: 'stanislav_s',
+                    password: '1234',
+                    name: 'Stanislav Strnad',
+                    display_name: 'Stanislav Strnad (Energetika)',
+                    role: 'user',
+                    department: 'Energetika závodu & Kotelna',
+                    location: 'Považská Bystrica',
+                    email: 'stanislav.s@azet.sk',
+                    phone: '+421 934 333 444',
+                    avatar_text: 'SS',
+                    rating: 4.8,
+                    rating_count: 16,
+                    registered_at: '2026-01-17T09:15:00Z',
+                    bio: 'Energetik.'
+                },
+                {
+                    id: 39,
+                    username: 'kristyna_h',
+                    password: '1234',
+                    name: 'Kristýna Horáková',
+                    display_name: 'Kristýna Horáková (Konstrukce)',
+                    role: 'user',
+                    department: 'Konstrukce přípravků & CAD',
+                    location: 'Žilina',
+                    email: 'kristyna.h@gmail.com',
+                    phone: '+421 935 444 555',
+                    avatar_text: 'KH',
+                    rating: 5.0,
+                    rating_count: 14,
+                    registered_at: '2026-02-01T15:45:00Z',
+                    bio: 'Konstruktérka.'
+                },
+                {
+                    id: 40,
+                    username: 'vladimir_p',
+                    password: '1234',
+                    name: 'Vladimír Pešek',
+                    display_name: 'Vladimír Pešek (NDT)',
+                    role: 'user',
+                    department: 'Kontrola svarů & NDT testování',
+                    location: 'Kysucké Nové Mesto',
+                    email: 'vladimir.p@post.sk',
+                    phone: '+421 936 555 666',
+                    avatar_text: 'VP',
+                    rating: 4.5,
+                    rating_count: 6,
+                    registered_at: '2026-02-17T08:00:00Z',
+                    bio: 'NDT defektoskop.'
+                },
+                {
+                    id: 41,
+                    username: 'adela_v',
+                    password: '1234',
+                    name: 'Adéla Vávrová',
+                    display_name: 'Adéla Vávrová (Ekologie)',
+                    role: 'user',
+                    department: 'Ekologie závodu & Odpady',
+                    location: 'Bytča',
+                    email: 'adela.v@azet.sk',
+                    phone: '+421 937 666 777',
+                    avatar_text: 'AV',
+                    rating: 4.9,
+                    rating_count: 12,
+                    registered_at: '2026-01-21T12:35:00Z',
+                    bio: 'Ekoložka.'
+                },
+                {
+                    id: 42,
+                    username: 'jaroslav_d',
+                    password: '1234',
+                    name: 'Jaroslav Dušek',
+                    display_name: 'Jaroslav Dušek (Prototypy)',
+                    role: 'user',
+                    department: 'Prototypová dílna SMC',
+                    location: 'Žilina',
+                    email: 'jaroslav.d@gmail.com',
+                    phone: '+421 938 777 888',
+                    avatar_text: 'JD',
+                    rating: 5.0,
+                    rating_count: 21,
+                    registered_at: '2026-01-11T10:50:00Z',
+                    bio: 'Modelář a prototypář.'
+                },
+                {
+                    id: 43,
+                    username: 'nikola_s',
+                    password: '1234',
+                    name: 'Nikola Šťastná',
+                    display_name: 'Nikola Šťastná (Metrologie)',
+                    role: 'user',
+                    department: 'Metrologie & Kalibrace měřidel',
+                    location: 'Martin',
+                    email: 'nikola.s@centrum.sk',
+                    phone: '+421 939 888 999',
+                    avatar_text: 'NS',
+                    rating: 4.8,
+                    rating_count: 10,
+                    registered_at: '2026-02-18T14:00:00Z',
+                    bio: 'Metrologička.'
+                },
+                {
+                    id: 44,
+                    username: 'ales_m',
+                    password: '1234',
+                    name: 'Aleš Matoušek',
+                    display_name: 'Aleš Matoušek (Logistika VZV)',
+                    role: 'user',
+                    department: 'Vysokozdvižné vozíky & Manipulace',
+                    location: 'Čadca',
+                    email: 'ales.m@azet.sk',
+                    phone: '+421 940 999 000',
+                    avatar_text: 'AM',
+                    rating: 4.6,
+                    rating_count: 7,
+                    registered_at: '2026-01-26T07:30:00Z',
+                    bio: 'Řidič VZV.'
+                },
+                {
+                    id: 45,
+                    username: 'eliska_s',
+                    password: '1234',
+                    name: 'Eliška Sýkorová',
+                    display_name: 'Eliška Sýkorová (Těsnost)',
+                    role: 'user',
+                    department: 'Směna B • Testování těsnosti ventilů',
+                    location: 'Žilina',
+                    email: 'eliska.s@gmail.com',
+                    phone: '+421 941 000 111',
+                    avatar_text: 'ES',
+                    rating: 4.9,
+                    rating_count: 15,
+                    registered_at: '2026-02-05T13:15:00Z',
+                    bio: 'Testerka.'
+                },
+                {
+                    id: 46,
+                    username: 'milan_k',
+                    password: '1234',
+                    name: 'Milan Kmenta',
+                    display_name: 'Milan Kmenta (Sklad ND)',
+                    role: 'user',
+                    department: 'Centrální sklad náhradních dílů',
+                    location: 'Bytča',
+                    email: 'milan.k@post.sk',
+                    phone: '+421 942 111 222',
+                    avatar_text: 'MK',
+                    rating: 4.7,
+                    rating_count: 8,
+                    registered_at: '2026-02-15T16:40:00Z',
+                    bio: 'Skladník ND.'
+                },
+                {
+                    id: 47,
+                    username: 'denisa_r',
+                    password: '1234',
+                    name: 'Denisa Říhová',
+                    display_name: 'Denisa Říhová (Školení)',
+                    role: 'user',
+                    department: 'Školení zaměstnanců & BOZP',
+                    location: 'Považská Bystrica',
+                    email: 'denisa.r@azet.sk',
+                    phone: '+421 943 222 333',
+                    avatar_text: 'DR',
+                    rating: 5.0,
+                    rating_count: 18,
+                    registered_at: '2026-01-13T09:00:00Z',
+                    bio: 'Lektorka školení.'
+                },
+                {
+                    id: 48,
+                    username: 'vit_ch',
+                    password: '1234',
+                    name: 'Vít Chrudimský',
+                    display_name: 'Vít Chrudimský (Zakladače)',
+                    role: 'user',
+                    department: 'Automatizované zakladače',
+                    location: 'Žilina',
+                    email: 'vit.ch@gmail.com',
+                    phone: '+421 944 333 444',
+                    avatar_text: 'VC',
+                    rating: 4.8,
+                    rating_count: 11,
+                    registered_at: '2026-02-12T11:45:00Z',
+                    bio: 'Technik zakladačů.'
+                },
+                {
+                    id: 49,
+                    username: 'kamila_t',
+                    password: '1234',
+                    name: 'Kamila Trojanová',
+                    display_name: 'Kamila Trojanová (Vstupní kontrola)',
+                    role: 'user',
+                    department: 'Vstupní kontrola komponentů',
+                    location: 'Kysucké Nové Mesto',
+                    email: 'kamila.t@centrum.sk',
+                    phone: '+421 945 444 555',
+                    avatar_text: 'KT',
+                    rating: 4.9,
+                    rating_count: 13,
+                    registered_at: '2026-01-31T14:20:00Z',
+                    bio: 'Kontrolorka vstupního materiálu.'
+                },
+                {
+                    id: 50,
+                    username: 'boris_v',
+                    password: '1234',
+                    name: 'Boris Valenta',
+                    display_name: 'Boris Valenta (Hydraulika)',
+                    role: 'user',
+                    department: 'Údržba hydrauliky a chlazení',
+                    location: 'Rajec',
+                    email: 'boris.v@post.sk',
+                    phone: '+421 946 555 666',
+                    avatar_text: 'BV',
+                    rating: 4.7,
+                    rating_count: 9,
+                    registered_at: '2026-02-10T15:00:00Z',
+                    bio: 'Hydraulik.'
+                },
+                {
+                    id: 51,
+                    username: 'dagmar_l',
+                    password: '1234',
+                    name: 'Dagmar Lukešová',
+                    display_name: 'Dagmar Lukešová (Mzdy)',
+                    role: 'user',
+                    department: 'Evidence smluv a mezd',
+                    location: 'Martin',
+                    email: 'dagmar.l@azet.sk',
+                    phone: '+421 947 666 777',
+                    avatar_text: 'DL',
+                    rating: 5.0,
+                    rating_count: 23,
+                    registered_at: '2026-01-15T08:15:00Z',
+                    bio: 'Mzdová účetní.'
+                },
+                {
+                    id: 52,
+                    username: 'erik_z',
+                    password: '1234',
+                    name: 'Erik Žáček',
+                    display_name: 'Erik Žáček (Laser)',
+                    role: 'user',
+                    department: 'Laserové řezání & Značení',
+                    location: 'Bytča',
+                    email: 'erik.z@gmail.com',
+                    phone: '+421 948 777 888',
+                    avatar_text: 'EZ',
+                    rating: 4.8,
+                    rating_count: 10,
+                    registered_at: '2026-02-08T10:30:00Z',
+                    bio: 'Laserový operátor.'
+                },
+                {
+                    id: 53,
+                    username: 'sabina_h',
+                    password: '1234',
+                    name: 'Sabina Hrušková',
+                    display_name: 'Sabina Hrušková (Montáž 2)',
+                    role: 'user',
+                    department: 'Montážní hala 2 • Denní směna',
+                    location: 'Žilina',
+                    email: 'sabina.h@centrum.sk',
+                    phone: '+421 949 888 999',
+                    avatar_text: 'SH',
+                    rating: 4.9,
+                    rating_count: 14,
+                    registered_at: '2026-01-20T12:00:00Z',
+                    bio: 'Operátorka montáže 2.'
+                },
+                {
+                    id: 54,
+                    username: 'smc_repas',
+                    password: '1234',
+                    name: 'SMC Servis & Repas Centrum',
+                    display_name: 'SMC Servis & Repase (Firma)',
+                    role: 'official_smc',
+                    is_official: true,
+                    department: 'Správa repasovaného vybavení SMC',
+                    location: 'Areál závodu SMC • Hala D (Výdej nářadí)',
+                    email: 'repase@smc.cz',
+                    phone: '+421 41 500 5678',
+                    avatar_text: 'REP',
+                    rating: 5.0,
+                    rating_count: 32,
+                    registered_at: '2025-06-01T08:00:00Z',
+                    bio: 'Oficiální firemní účet SMC pro repase, náhradní díly a renovované servisní přípravky.'
+                },
+                {
+                    id: 55,
+                    username: 'vojtech_z',
+                    password: '1234',
+                    name: 'Vojtěch Zeman',
+                    display_name: 'Vojtěch Zeman (Expedice C)',
+                    role: 'user',
+                    department: 'Směna C • Expedice hotových výrobků',
+                    location: 'Žilina',
+                    email: 'vojtech.z@gmail.com',
+                    phone: '+421 950 000 111',
+                    avatar_text: 'VZ',
+                    rating: 4.8,
+                    rating_count: 12,
+                    registered_at: '2026-02-19T07:15:00Z',
+                    bio: 'Expedient hotových pneumatických válců.'
                 }
             ],
             categories: [
-                { id: 'pneumatics', name: 'Pneumatika & Ventily', icon: 'fa-wind', badge_color: '#005BAC' },
-                { id: 'automation', name: 'Automatizace & Pohony', icon: 'fa-robot', badge_color: '#0284C7' },
-                { id: 'tools', name: 'Nářadí & Měřidla', icon: 'fa-wrench', badge_color: '#D97706' },
-                { id: 'electrical', name: 'Elektro & Senzory', icon: 'fa-bolt', badge_color: '#7C3AED' },
-                { id: 'office', name: 'Kancelář & IT', icon: 'fa-laptop', badge_color: '#059669' },
-                { id: 'material', name: 'Materiál & Konstrukce', icon: 'fa-cubes', badge_color: '#475569' }
+                { id: 'home_garden', name: 'Domov, byt & zahrada', icon: 'fa-house-chimney-window', badge_color: '#16A34A' },
+                { id: 'tools_workshop', name: 'Dílna, stavba & nářadí', icon: 'fa-screwdriver-wrench', badge_color: '#D97706' },
+                { id: 'auto_moto', name: 'Auto-moto & pneumatiky', icon: 'fa-car', badge_color: '#0284C7' },
+                { id: 'sport_leisure', name: 'Sport, kola & turistika', icon: 'fa-person-biking', badge_color: '#7C3AED' },
+                { id: 'kids_family', name: 'Děti, kočárky & hračky', icon: 'fa-baby-carriage', badge_color: '#EC4899' },
+                { id: 'electronics', name: 'Elektronika & smart home', icon: 'fa-tv', badge_color: '#2563EB' },
+                { id: 'produce_food', name: 'Zahrada & domácí přebytky', icon: 'fa-apple-whole', badge_color: '#EA580C' }
             ],
             items: [
                 {
                     id: 1,
-                    title: 'SMC Pneumatický válec CDQ2B + Přesný regulátor tlaku AR-20K',
-                    description: 'Nový, originálně zabalený pneumatický válec SMC se sestavou regulátoru tlaku AR-20K s manometrem (0-10 bar). Zůstatek z projektu automatické montážní linky 4. Vhodné pro údržbu nebo nový přípravek.',
-                    category_id: 'pneumatics',
-                    price: 0,
-                    price_type: 'free',
-                    condition: 'new',
-                    location: 'Hala A - Regál M-14',
-                    image_base64: EMBEDDED_IMAGES.smc_valve_cylinder,
-                    user_id: 1,
-                    status: 'active',
-                    created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
-                    views_count: 28
-                },
-                {
-                    id: 2,
-                    title: 'Digitální multimetr Fluke 87V True RMS + sondy',
-                    description: 'Plně funkční multimetr včetně kalibračního protokolu z minulého roku, měřicích hrotů a ochranného pouzdra. Předávám kolegovi na dílně, dostali jsme nové modely.',
-                    category_id: 'electrical',
-                    price: 800,
-                    price_type: 'fixed',
+                    title: 'Dětské lehké kolo Woom 3 (16") s originálním stojánkem',
+                    description: 'Prodám oblíbené ultralehké dětské kolo Woom 3 (velikost 16 palců) ve žluté barvě. Dcerka z něj vyrostla, ježděno pouze jednu sezónu. Minimální známky používání, 100% technický stav, originál stojánek v ceně. Osobní odběr možný na parkovišti u závodu po ranní směně.',
+                    category_id: 'kids_family',
+                    price: 290,
+                    price_type: 'sell',
                     condition: 'like_new',
-                    location: 'Dílna elektro - stůl 3',
-                    image_base64: EMBEDDED_IMAGES.digital_multimeter,
-                    user_id: 2,
-                    status: 'active',
-                    created_at: new Date(Date.now() - 3600000 * 18).toISOString(),
-                    views_count: 42
-                },
-                {
-                    id: 3,
-                    title: 'Ergonomická kancelářská židle Aeron s bederní opěrkou',
-                    description: 'Velmi pohodlná prodyšná síťovaná židle, nastavitelná výška, područky a náklon. Vhodná do kanceláře nebo do velína výroby. Drobná kosmetická oděrka na kolečku, jinak 100% stav.',
-                    category_id: 'office',
-                    price: 0,
-                    price_type: 'free',
-                    condition: 'used',
-                    location: 'Kancelář 204 (2. patro)',
-                    image_base64: EMBEDDED_IMAGES.ergonomic_chair,
-                    user_id: 3,
-                    status: 'active',
-                    created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
-                    views_count: 19
-                },
-                {
-                    id: 4,
-                    title: 'Sada SMC rychlospojek KQ2 a modrá PUR hadice 8mm (50m návin)',
-                    description: 'Kompletní balení originálních nástrčných spojek SMC řady KQ2 (přímé, úhlové, T-kusy) + celý nerozbalený návin flexibilní polyuretanové hadičky v SMC modré barvě.',
-                    category_id: 'pneumatics',
-                    price: 350,
-                    price_type: 'fixed',
-                    condition: 'new',
-                    location: 'Sklad náhradních dílů - box 8B',
-                    image_base64: EMBEDDED_IMAGES.smc_fittings,
-                    user_id: 1,
-                    status: 'active',
-                    created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
-                    views_count: 34
-                },
-                {
-                    id: 5,
-                    title: 'Zakřivený monitor Dell UltraSharp 34" Curved USB-C Hub',
-                    description: 'Prémiový ultrawide monitor ideální pro CAD / SolidWorks a elektro schémata. Přebytek po dokončení projekční kanceláře. Včetně DisplayPort a USB-C kabeláže.',
-                    category_id: 'office',
-                    price: 0,
-                    price_type: 'swap',
-                    condition: 'like_new',
-                    location: 'IT podpora - budova B',
-                    image_base64: EMBEDDED_IMAGES.it_monitor,
-                    user_id: 3,
-                    status: 'active',
-                    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-                    views_count: 61
-                },
-                {
-                    id: 6,
-                    title: 'Průmyslový momentový klíč 20-200 Nm s kalibrovanými ořechy',
-                    description: 'Kvalitní momentový klíč v robustním hliníkovém kufru s přesným nastavením momentu pro montáž přírub a šroubových spojů. Minimálně používaný.',
-                    category_id: 'tools',
-                    price: 500,
-                    price_type: 'negotiable',
-                    condition: 'like_new',
-                    location: 'Nástrojárna - skříň N2',
+                    location: 'Žilina - Vlčince (nebo parkoviště závodu)',
                     image_base64: EMBEDDED_IMAGES.tools_case,
                     user_id: 2,
                     status: 'active',
+                    created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+                    views_count: 54
+                },
+                {
+                    id: 2,
+                    title: 'Sada zimních pneu Continental 205/55 R16 na alu discích 5x112',
+                    description: 'Kompletní vyvážená zimní sada disků s pneumatikami Continental WinterContact TS860, rozměr 205/55 R16 91H. Vzorek cca 6 mm na všech čtyřech kolech. Vhodné pro VW Golf, Škoda Octavia, Seat Leon. Prodávám z důvodu pořízení nového vozu.',
+                    category_id: 'auto_moto',
+                    price: 180,
+                    price_type: 'sell',
+                    condition: 'used',
+                    location: 'Bytča (případně přivezu na domluvené místo mimo směnu)',
+                    image_base64: EMBEDDED_IMAGES.digital_multimeter,
+                    user_id: 1,
+                    status: 'active',
+                    created_at: new Date(Date.now() - 3600000 * 18).toISOString(),
+                    views_count: 73
+                },
+                {
+                    id: 3,
+                    title: 'Aku bezuhlíková vrtačka DeWalt 18V XR + 2x 5Ah akumulátor',
+                    description: 'Nabízím k zapůjčení kolegům výkonnou aku příklepovou vrtačku DeWalt DCD791 se dvěma 5.0Ah bateriemi, rychlonabíječkou a kufrem. Ideální na víkendovou rekonstrukci nebo vrtání do panelu. Symbolický příspěvek na opotřebení nástrojů.',
+                    category_id: 'tools_workshop',
+                    price: 5,
+                    price_type: 'lend',
+                    condition: 'like_new',
+                    location: 'Kysucké Nové Mesto & areál závodu (předání před/po směně)',
+                    image_base64: EMBEDDED_IMAGES.tools_case,
+                    user_id: 3,
+                    status: 'active',
+                    created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+                    views_count: 38
+                },
+                {
+                    id: 4,
+                    title: 'Bio jablka ze sadu nestříkaná (Jonagold & Golden, 3 bedýnky)',
+                    description: 'Máme v domácím sadu velkou úrodu kvalitních zimních jablek, která sami nespotřebujeme. Rádi darujeme za odvoz kolegům do dobrých rukou. Jsou sladká, šťavnatá, bez chemie. Stačí si přinést vlastní přepravku nebo tašku.',
+                    category_id: 'produce_food',
+                    price: 0,
+                    price_type: 'free',
+                    condition: 'new',
+                    location: 'Žilina - Teplička nad Váhom',
+                    image_base64: EMBEDDED_IMAGES.smc_fittings,
+                    user_id: 2,
+                    status: 'active',
+                    created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
+                    views_count: 62
+                },
+                {
+                    id: 5,
+                    title: 'HLEDÁM / SHÁNÍM: Střešní box na lyže Thule na jarní prázdniny',
+                    description: 'Ahoj kolegové, hledám k zapůjčení (nebo odkoupení za rozumnou cenu) střešní box na lyže s délkou alespoň 180 cm na termín jarních prázdnin. Vrátím ve 100% stavu + láhev domácího sirupu jako poděkování.',
+                    category_id: 'sport_leisure',
+                    price: 0,
+                    price_type: 'buy',
+                    condition: 'used',
+                    location: 'Bytča / Žilina',
+                    image_base64: EMBEDDED_IMAGES.it_monitor,
+                    user_id: 1,
+                    status: 'active',
+                    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+                    views_count: 45
+                },
+                {
+                    id: 6,
+                    title: 'Zahradní benzínový rotavátor Hecht 5,5 HP na jarní přípravu půdy',
+                    description: 'Pronajmu silný benzínový kultivátor na prokypření záhonů a trávníku. Šířka záběru 60 cm, snadné startování, plná nádrž. Naučím obsluhu. Předání v pátek odpoledne nebo o víkendu.',
+                    category_id: 'home_garden',
+                    price: 15,
+                    price_type: 'rent',
+                    condition: 'used',
+                    location: 'Kysucké Nové Mesto',
+                    image_base64: EMBEDDED_IMAGES.smc_valve_cylinder,
+                    user_id: 3,
+                    status: 'active',
                     created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
-                    views_count: 15
+                    views_count: 29
+                },
+                {
+                    id: 7,
+                    title: 'Profesionální gola sada 108 ks chrom-vanad v kufříku',
+                    description: 'Kompletní masivní gola sada s ráčnami 1/2" a 1/4", prodlouženými hlavicemi a bity. Vyměním za funkční úhlovou brusku 125mm s regulací otáček, případně nabídněte jinou techniku do dílny.',
+                    category_id: 'tools_workshop',
+                    price: 0,
+                    price_type: 'swap',
+                    condition: 'like_new',
+                    location: 'Bytča',
+                    image_base64: EMBEDDED_IMAGES.tools_case,
+                    user_id: 1,
+                    status: 'active',
+                    created_at: new Date(Date.now() - 3600000 * 1).toISOString(),
+                    views_count: 31
+                },
+                {
+                    id: 8,
+                    title: '[Oficiální odprodej SMC] Ergonomická dílenská a kancelářská židle Antares',
+                    description: 'V rámci plánované modernizace kontrolních a dispečerských pracovišť montážní haly odprodává společnost SMC plně funkční, profesionálně stavitelné ergonomické židle se synchronním mechanismem, bederní opěrkou a 3D područkami. Vyčištěné, bez poškození mechanismu. K dispozici protokol o odprodeji vyřazeného majetku. Osobní odběr na vrátnici / výdejně expedice po ranní nebo odpolední směně.',
+                    category_id: 'home_garden',
+                    price: 35,
+                    price_type: 'sell',
+                    condition: 'used',
+                    location: 'Areál závodu SMC • Výdejna expedice / Vrátnice',
+                    image_base64: EMBEDDED_IMAGES.ergonomic_chair,
+                    user_id: 4,
+                    status: 'active',
+                    created_at: new Date(Date.now() - 3600000 * 15).toISOString(),
+                    views_count: 94
+                },
+                {
+                    id: 9,
+                    title: '[Oficiální odprodej SMC] Profesionální digitální multimetr Fluke 179 True-RMS s příslušenstvím',
+                    description: 'Společnost SMC nabízí k zaměstnaneckému odprodeji kalibrované dílenské multimetry Fluke vyřazené po přechodu na novou generaci měřicích systémů. Přístroje jsou 100% funkční, otestované technikem elektrodílny, včetně nových měřicích kabelů a ochranného pryžového pouzdra. Vynikající přístroj pro kutily, elektrotechniky a automechaniky.',
+                    category_id: 'tools_workshop',
+                    price: 65,
+                    price_type: 'sell',
+                    condition: 'like_new',
+                    location: 'Areál závodu SMC • Dílna technické údržby (Hala B)',
+                    image_base64: EMBEDDED_IMAGES.digital_multimeter,
+                    user_id: 4,
+                    status: 'active',
+                    created_at: new Date(Date.now() - 3600000 * 10).toISOString(),
+                    views_count: 128
+                },
+                {
+                    id: 10,
+                    title: '[Oficiální darování SMC] 24" Full HD IPS monitor Dell Professional P2419H s polohovatelným stojanem',
+                    description: 'Společnost SMC daruje zaměstnancům bezplatně za odvoz vyřazené kancelářské monitory z administrativy po přechodu na 27" displeje. Monitory jsou 100% funkční bez vadných pixelů, s otočným ramenem (Pivot), vstupy HDMI, DisplayPort, VGA a integrovaným USB rozbočovačem. Včetně napájecího kabelu. Přednost mají zaměstnanci pro potřeby školou povinných dětí.',
+                    category_id: 'electronics',
+                    price: 0,
+                    price_type: 'free',
+                    condition: 'like_new',
+                    location: 'Areál závodu SMC • IT oddělení (Správní budova, 1. patro)',
+                    image_base64: EMBEDDED_IMAGES.it_monitor,
+                    user_id: 4,
+                    status: 'active',
+                    created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
+                    views_count: 156
                 }
             ],
             favorites: [
-                { user_id: 2, item_id: 1 },
-                { user_id: 2, item_id: 5 },
-                { user_id: 3, item_id: 1 }
+                { user_id: 1, item_id: 8 },
+                { user_id: 1, item_id: 4 },
+                { user_id: 2, item_id: 9 },
+                { user_id: 3, item_id: 10 }
             ],
             inquiries: [
                 {
                     id: 1,
                     item_id: 1,
-                    buyer_id: 2,
-                    sender_id: 2,
-                    message: 'Ahoj, mohu se pro válec stavit dnes odpoledne kolem 14:00? Hodil by se nám na lince 3.',
+                    buyer_id: 1,
+                    sender_id: 1,
+                    message: 'Ahoj Lucie, to kolo vypadá super. Hodilo by se naší malé. Mohli bychom se potkat zítra po odpolední na parkovišti?',
                     created_at: new Date(Date.now() - 3600000 * 6).toISOString()
                 },
                 {
                     id: 2,
                     item_id: 1,
-                    buyer_id: 2,
-                    sender_id: 1,
-                    message: 'Ahoj Honzo, jasně, stav se na centrálním skladě, mám to pro tebe připravené.',
+                    buyer_id: 1,
+                    sender_id: 2,
+                    message: 'Ahoj Michale, jasně, můžu ho naložit do kufru a potkáme se u vchodu k šatnám kolem 22:15, jakmile skončí směna.',
                     created_at: new Date(Date.now() - 3600000 * 5).toISOString()
                 },
                 {
                     id: 3,
-                    item_id: 1,
-                    buyer_id: 3,
-                    sender_id: 3,
-                    message: 'Dobrý den, pokud by si kolega válec nevzal, mám o něj také zájem pro montážní linku v hale B.',
-                    created_at: new Date(Date.now() - 3600000 * 3).toISOString()
-                },
-                {
-                    id: 4,
-                    item_id: 5,
-                    buyer_id: 2,
-                    sender_id: 2,
-                    message: 'Zdravím, měl bych zájem o monitor do projekce. Mám na výměnu sadu pneumatického nářadí.',
+                    item_id: 8,
+                    buyer_id: 1,
+                    sender_id: 1,
+                    message: 'Dobrý den, měl bych zájem o tuto židli Antares do domácí dílny. Kdy je možné ji na expedici převzít?',
                     created_at: new Date(Date.now() - 3600000 * 4).toISOString()
                 },
                 {
-                    id: 5,
-                    item_id: 5,
-                    buyer_id: 2,
-                    sender_id: 3,
-                    message: 'Ahoj Honzo, to by šlo! Můžeme se na to zítra podívat u nás na IT podpoře.',
-                    created_at: new Date(Date.now() - 3600000 * 2).toISOString()
+                    id: 4,
+                    item_id: 8,
+                    buyer_id: 1,
+                    sender_id: 4,
+                    message: 'Dobrý den Michale, židle je připravena a rezervována na Vaše jméno. Výdej je možný v pracovní dny od 14:00 do 15:30 na bráně expedice po předložení kartičky zaměstnance.',
+                    created_at: new Date(Date.now() - 3600000 * 3).toISOString()
+                }
+            ],
+            reports: [
+                {
+                    id: 1,
+                    item_id: 2,
+                    reporter_id: 3,
+                    reason: 'unauthorized_commercial',
+                    details: 'Prověřit, zda pneumatiky nepocházejí z komerčního prodeje autoservisu.',
+                    status: 'pending',
+                    action_taken: null,
+                    moderator_reason: null,
+                    created_at: new Date(Date.now() - 3600000 * 5).toISOString()
+                }
+            ],
+            reviews: [
+                {
+                    id: 1,
+                    item_id: 1,
+                    reviewer_id: 1,
+                    target_user_id: 2,
+                    rating: 5,
+                    comment: 'Kolo bylo v perfektním stavu, přesně podle popisu. Rychlé a férové setkání na parkovišti u haly B po odpolední směně. Velký dík!',
+                    transaction_type: 'sell',
+                    created_at: new Date(Date.now() - 3600000 * 48).toISOString()
+                },
+                {
+                    id: 2,
+                    item_id: 4,
+                    reviewer_id: 3,
+                    target_user_id: 2,
+                    rating: 5,
+                    comment: 'Výborná domácí jablíčka ze zahrady, kolegyně je měla nachystané v přepravce. Skvělá komunitní spolupráce!',
+                    transaction_type: 'free',
+                    created_at: new Date(Date.now() - 3600000 * 72).toISOString()
+                },
+                {
+                    id: 3,
+                    item_id: 8,
+                    reviewer_id: 2,
+                    target_user_id: 4,
+                    rating: 5,
+                    comment: 'Skvělá možnost získat vyřazené firemní vybavení za zlomek ceny. Vše proběhlo hladce a s protokolem.',
+                    transaction_type: 'sell',
+                    created_at: new Date(Date.now() - 3600000 * 96).toISOString()
+                }
+            ],
+            audit_logs: [
+                {
+                    id: 1,
+                    user_id: 5,
+                    action: 'system_init',
+                    target_type: 'system',
+                    target_id: 1,
+                    details: 'Inicializace administrátorského rozhraní SMC komunitního tržiště.',
+                    timestamp: new Date().toISOString()
                 }
             ]
         };
@@ -244,19 +1259,73 @@ class SMCLocalDatabase {
         return this.data;
     }
 
-    // --- AUTH & SESSION ---
+    // --- AUTH, MEMBERSHIP & SESSION ---
 
     login(username, password) {
+        const query = username.trim().toLowerCase();
         const user = this.data.users.find(
-            u => u.username.toLowerCase() === username.trim().toLowerCase() && u.password === password.trim()
+            u => (u.username.toLowerCase() === query || (u.username === 'smc' && query === 'smc_official')) && u.password === password.trim()
         );
         if (!user) {
             return { success: false, error: 'Neplatné přihlašovací jméno nebo heslo. Pro testování použijte heslo: 1234' };
+        }
+        if (user.is_banned) {
+            return { success: false, error: 'Tento účet byl pozastaven administrátorem pro porušení pravidel komunity.' };
         }
         const sessionUser = { ...user };
         delete sessionUser.password;
         localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionUser));
         return { success: true, user: sessionUser };
+    }
+
+    register(userData) {
+        if (!userData.username || !userData.password || !userData.name) {
+            return { success: false, error: 'Vyplňte prosím všechna povinná pole (jméno, přihlašovací jméno a heslo).' };
+        }
+
+        const enteredCode = (userData.community_code || '').trim().toUpperCase();
+        if (!this.data.community_codes.includes(enteredCode)) {
+            return {
+                success: false,
+                error: 'Neplatný kód komunity. Přístup je vyhrazen pro zaměstnance závodu. Kód najdete na nástěnce v šatnách / jídelně (např. ZAVOD2026).'
+            };
+        }
+
+        const exists = this.data.users.some(u => u.username.toLowerCase() === userData.username.trim().toLowerCase());
+        if (exists) {
+            return { success: false, error: 'Toto uživatelské jméno je již obsazené. Zvolte si prosím jiné.' };
+        }
+
+        const nextId = this.data.users.length > 0 ? Math.max(...this.data.users.map(u => u.id)) + 1 : 1;
+        const initials = userData.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'ZK';
+
+        const newUser = {
+            id: nextId,
+            username: userData.username.trim().toLowerCase(),
+            password: userData.password.trim(),
+            name: userData.name.trim(),
+            display_name: userData.name.trim(),
+            role: 'user',
+            department: userData.department || 'Zaměstnanec závodu',
+            location: userData.location || 'Bytča / Žilina',
+            email: userData.email || '',
+            phone: userData.phone || '',
+            avatar_text: initials,
+            rating: 5.0,
+            rating_count: 0,
+            registered_at: new Date().toISOString(),
+            bio: 'Člen zaměstnanecké komunity.'
+        };
+
+        this.data.users.push(newUser);
+        this.addAuditLog(newUser.id, 'user_register', 'user', newUser.id, `Registrace nového člena komunity přes kód ${enteredCode}`);
+        this.saveDatabase();
+
+        const sessionUser = { ...newUser };
+        delete sessionUser.password;
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionUser));
+
+        return { success: true, user: sessionUser, message: 'Registrace byla úspěšná! Vítejte v komunitě.' };
     }
 
     getCurrentUser() {
@@ -277,7 +1346,7 @@ class SMCLocalDatabase {
     getCategories() {
         return this.data.categories.map(cat => {
             const count = this.data.items.filter(
-                i => i.category_id === cat.id && i.status !== 'sold'
+                i => i.category_id === cat.id && i.status === 'active'
             ).length;
             return { ...cat, items_count: count };
         });
@@ -286,13 +1355,18 @@ class SMCLocalDatabase {
     getStats() {
         const active = this.data.items.filter(i => i.status === 'active').length;
         const reserved = this.data.items.filter(i => i.status === 'reserved').length;
-        const free = this.data.items.filter(i => i.price_type === 'free' && i.status !== 'sold').length;
+        const free = this.data.items.filter(i => i.price_type === 'free' && i.status === 'active').length;
+        const totalCompleted = this.data.items.filter(i => i.status === 'completed' || i.status === 'sold').length;
         const usersCount = this.data.users.length;
+        const pendingReports = (this.data.reports || []).filter(r => r.status === 'pending').length;
+
         return {
             active_items: active,
             reserved_items: reserved,
             free_items: free,
-            total_users: usersCount
+            completed_items: totalCompleted,
+            total_users: usersCount,
+            pending_reports: pendingReports
         };
     }
 
@@ -304,19 +1378,24 @@ class SMCLocalDatabase {
             const category = this.data.categories.find(c => c.id === item.category_id) || {};
             const isFav = currentUserId ? this.data.favorites.some(f => f.user_id === currentUserId && f.item_id === item.id) : false;
             const inqCount = new Set(
-                this.data.inquiries
+                (this.data.inquiries || [])
                     .filter(inq => inq.item_id === item.id)
                     .map(inq => inq.buyer_id || inq.user_id)
             ).size;
+
+            const isOfficial = Boolean(publisher.is_official || (publisher.username && publisher.username.toLowerCase() === 'smc') || publisher.role === 'official_smc');
 
             return {
                 ...item,
                 image_url: item.image_base64 || item.image_url,
                 username: publisher.username || '',
-                publisher_name: publisher.name || 'Neznámý uživatel',
-                publisher_role: publisher.role || 'employee',
-                publisher_department: publisher.department || 'SMC',
-                publisher_avatar: publisher.avatar_text || publisher.username || 'SM',
+                publisher_name: publisher.display_name || publisher.name || 'Člen komunity',
+                publisher_role: publisher.role || 'user',
+                publisher_department: publisher.department || 'Zaměstnanec závodu',
+                publisher_avatar: publisher.avatar_text || 'ZK',
+                publisher_rating: publisher.rating || 5.0,
+                publisher_rating_count: publisher.rating_count || 0,
+                is_official: isOfficial,
                 category_name: category.name || item.category_id,
                 category_color: category.badge_color || '#005BAC',
                 is_favorite: isFav ? 1 : 0,
@@ -324,19 +1403,10 @@ class SMCLocalDatabase {
             };
         });
 
-        // Apply filters
+        results = results.filter(i => i.status !== 'deleted' && i.status !== 'removed_by_moderator');
+
         if (filters.category) {
             results = results.filter(i => i.category_id === filters.category);
-        }
-
-        if (filters.search) {
-            const q = filters.search.toLowerCase();
-            results = results.filter(i =>
-                (i.title && i.title.toLowerCase().includes(q)) ||
-                (i.description && i.description.toLowerCase().includes(q)) ||
-                (i.location && i.location.toLowerCase().includes(q)) ||
-                (i.publisher_name && i.publisher_name.toLowerCase().includes(q))
-            );
         }
 
         if (filters.price_type) {
@@ -347,10 +1417,14 @@ class SMCLocalDatabase {
             results = results.filter(i => i.condition === filters.condition);
         }
 
-        if (filters.status) {
-            results = results.filter(i => i.status === filters.status);
-        } else if (!filters.user_id) {
-            results = results.filter(i => i.status === 'active' || i.status === 'reserved');
+        if (filters.search) {
+            const q = filters.search.toLowerCase().trim();
+            results = results.filter(i =>
+                (i.title && i.title.toLowerCase().includes(q)) ||
+                (i.description && i.description.toLowerCase().includes(q)) ||
+                (i.location && i.location.toLowerCase().includes(q)) ||
+                (i.publisher_name && i.publisher_name.toLowerCase().includes(q))
+            );
         }
 
         if (filters.user_id) {
@@ -361,7 +1435,6 @@ class SMCLocalDatabase {
             results = results.filter(i => i.is_favorite === 1);
         }
 
-        // Sorting
         const sort = filters.sort || 'newest';
         if (sort === 'price_asc') {
             results.sort((a, b) => (a.price || 0) - (b.price || 0));
@@ -388,10 +1461,10 @@ class SMCLocalDatabase {
         const isFav = currentUserId ? this.data.favorites.some(f => f.user_id === currentUserId && f.item_id === item.id) : false;
 
         const currentUser = currentUserId ? this.data.users.find(u => u.id === currentUserId) : null;
-        const isSeller = currentUser ? (currentUser.id === item.user_id || currentUser.role === 'admin') : false;
+        const isSeller = currentUser ? (currentUser.id === item.user_id || currentUser.role === 'moderator' || currentUser.role === 'admin' || currentUser.role === 'official_smc') : false;
+        const isOfficial = Boolean(publisher.is_official || (publisher.username && publisher.username.toLowerCase() === 'smc') || publisher.role === 'official_smc');
 
-        // Normalize and populate all inquiries for this item
-        const itemInquiries = this.data.inquiries
+        const itemInquiries = (this.data.inquiries || [])
             .filter(inq => inq.item_id === item.id)
             .map(inq => {
                 const buyerId = inq.buyer_id || inq.user_id;
@@ -404,54 +1477,51 @@ class SMCLocalDatabase {
                     sender_id: senderId,
                     message: inq.message,
                     created_at: inq.created_at,
-                    sender_name: sender.name || 'Kolega',
-                    sender_department: sender.department || 'SMC',
-                    sender_avatar: sender.avatar_text || 'SM',
+                    sender_name: sender.display_name || sender.name || 'Kolega',
+                    sender_department: sender.department || 'Zaměstnanec',
+                    sender_avatar: sender.avatar_text || 'ZK',
                     is_from_seller: senderId === item.user_id
                 };
-            })
-            .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            });
 
-        // Group into buyer threads (each buyer has their own separate conversation)
-        const buyerThreadsMap = {};
-        itemInquiries.forEach(inq => {
-            if (!buyerThreadsMap[inq.buyer_id]) {
-                const buyerUser = this.data.users.find(u => u.id === inq.buyer_id) || {};
-                buyerThreadsMap[inq.buyer_id] = {
-                    buyer_id: inq.buyer_id,
-                    buyer_name: buyerUser.name || 'Kolega',
-                    buyer_department: buyerUser.department || 'SMC',
-                    buyer_email: buyerUser.email || '',
-                    buyer_phone: buyerUser.phone || '',
-                    buyer_avatar: buyerUser.avatar_text || 'SM',
-                    messages: [],
-                    last_message: '',
-                    last_message_at: ''
-                };
-            }
-            buyerThreadsMap[inq.buyer_id].messages.push(inq);
-            buyerThreadsMap[inq.buyer_id].last_message = inq.message;
-            buyerThreadsMap[inq.buyer_id].last_message_at = inq.created_at;
+        const buyerThreads = [];
+        const buyerIds = [...new Set(itemInquiries.map(i => i.buyer_id))];
+
+        buyerIds.forEach(bId => {
+            const bUser = this.data.users.find(u => u.id === bId) || {};
+            const msgs = itemInquiries.filter(i => i.buyer_id === bId);
+            buyerThreads.push({
+                buyer_id: bId,
+                buyer_name: bUser.display_name || bUser.name || 'Zájemce',
+                buyer_department: bUser.department || 'Závod',
+                buyer_avatar: bUser.avatar_text || 'ZK',
+                buyer_email: bUser.email || '',
+                buyer_phone: bUser.phone || '',
+                messages: msgs
+            });
         });
 
-        const buyerThreads = Object.values(buyerThreadsMap);
-
-        // If the viewer is NOT the seller, provide ONLY their own thread
         let myThread = [];
-        if (currentUserId) {
-            myThread = itemInquiries.filter(inq => inq.buyer_id === currentUserId);
+        if (currentUserId && !isSeller) {
+            myThread = itemInquiries.filter(i => i.buyer_id === currentUserId);
         }
+
+        const publisherReviews = (this.data.reviews || []).filter(r => r.target_user_id === item.user_id);
 
         return {
             ...item,
             image_url: item.image_base64 || item.image_url,
             username: publisher.username || '',
-            publisher_name: publisher.name || 'Neznámý uživatel',
-            publisher_role: publisher.role || 'employee',
-            publisher_department: publisher.department || 'SMC',
+            publisher_name: publisher.display_name || publisher.name || 'Neznámý člen',
+            publisher_role: publisher.role || 'user',
+            publisher_department: publisher.department || 'Zaměstnanec závodu',
             publisher_email: publisher.email || '',
             publisher_phone: publisher.phone || '',
-            publisher_avatar: publisher.avatar_text || 'SM',
+            publisher_avatar: publisher.avatar_text || 'ZK',
+            publisher_rating: publisher.rating || 5.0,
+            publisher_rating_count: publisher.rating_count || 0,
+            publisher_reviews: publisherReviews,
+            is_official: isOfficial,
             category_name: category.name || item.category_id,
             category_color: category.badge_color || '#005BAC',
             is_favorite: isFav ? 1 : 0,
@@ -474,187 +1544,494 @@ class SMCLocalDatabase {
             description: itemData.description.trim(),
             category_id: itemData.category_id,
             price: Number(itemData.price) || 0,
-            price_type: itemData.price_type || 'fixed',
+            price_type: itemData.price_type || 'sell',
             condition: itemData.condition || 'like_new',
             location: itemData.location.trim(),
-            image_base64: itemData.image_base64 || EMBEDDED_IMAGES.smc_valve_cylinder,
+            image_base64: itemData.image_base64 || EMBEDDED_IMAGES.tools_case,
             user_id: currentUserId,
             status: 'active',
             created_at: new Date().toISOString(),
             views_count: 0
         };
 
-        if (newItem.price_type === 'free') {
+        if (newItem.price_type === 'free' || newItem.price_type === 'swap') {
             newItem.price = 0;
         }
 
         this.data.items.unshift(newItem);
+        this.addAuditLog(currentUserId, 'item_create', 'item', newItem.id, `Přidání nabídky: ${newItem.title}`);
         this.saveDatabase();
 
-        return { success: true, item_id: newItem.id, message: 'Nabídka byla úspěšně uložena do databáze (včetně Base64 obrázku)!' };
+        return { success: true, item_id: newItem.id, message: 'Nabídka byla úspěšně zveřejněna v komunitě!' };
     }
 
     updateItemStatus(itemId, newStatus, currentUserId) {
         const item = this.data.items.find(i => i.id === Number(itemId));
-        if (!item) return { success: false, error: 'Položka nenalezena.' };
+        if (!item) return { success: false, error: 'Nabídka nebyla nalezena.' };
 
         const currentUser = this.data.users.find(u => u.id === currentUserId);
-        if (!currentUser || (item.user_id !== currentUserId && currentUser.role !== 'admin')) {
-            return { success: false, error: 'Nemáte oprávnění upravovat tuto položku.' };
+        const isOwner = item.user_id === currentUserId;
+        const isMod = currentUser && (currentUser.role === 'moderator' || currentUser.role === 'admin' || currentUser.role === 'official_smc');
+
+        if (!isOwner && !isMod) {
+            return { success: false, error: 'Nemáte oprávnění spravovat tuto nabídku.' };
         }
 
         item.status = newStatus;
+        this.addAuditLog(currentUserId, 'item_status_change', 'item', item.id, `Změna stavu nabídky na: ${newStatus}`);
         this.saveDatabase();
-        return { success: true, status: newStatus, message: `Stav nabídky byl změněn na: ${newStatus}` };
+
+        let msg = 'Stav nabídky byl úspěšně upraven.';
+        if (newStatus === 'reserved') msg = 'Nabídka byla označena jako rezervovaná.';
+        if (newStatus === 'active') msg = 'Nabídka je opět aktivní pro všechny.';
+        if (newStatus === 'sold' || newStatus === 'completed') msg = 'Obchod byl úspěšně dokončen.';
+
+        return { success: true, message: msg };
     }
 
     deleteItem(itemId, currentUserId) {
-        const idx = this.data.items.findIndex(i => i.id === Number(itemId));
-        if (idx === -1) return { success: false, error: 'Položka nenalezena.' };
+        const item = this.data.items.find(i => i.id === Number(itemId));
+        if (!item) return { success: false, error: 'Nabídka nebyla nalezena.' };
 
-        const item = this.data.items[idx];
         const currentUser = this.data.users.find(u => u.id === currentUserId);
-        if (!currentUser || (item.user_id !== currentUserId && currentUser.role !== 'admin')) {
+        const isOwner = item.user_id === currentUserId;
+        const isMod = currentUser && (currentUser.role === 'moderator' || currentUser.role === 'admin' || currentUser.role === 'official_smc');
+
+        if (!isOwner && !isMod) {
             return { success: false, error: 'Nemáte oprávnění smazat tuto nabídku.' };
         }
 
-        this.data.items.splice(idx, 1);
-        this.data.favorites = this.data.favorites.filter(f => f.item_id !== Number(itemId));
-        this.data.inquiries = this.data.inquiries.filter(inq => inq.item_id !== Number(itemId));
-
+        item.status = 'deleted';
+        this.addAuditLog(currentUserId, 'item_delete', 'item', item.id, `Smazání nabídky: ${item.title}`);
         this.saveDatabase();
-        return { success: true, message: 'Položka byla úspěšně smazána z databáze.' };
+
+        return { success: true, message: 'Nabídka byla úspěšně smazána.' };
     }
+
+    // --- FAVORITES ---
 
     toggleFavorite(itemId, currentUserId) {
-        if (!currentUserId) return { success: false, error: 'Pro uložení do oblíbených se prosím přihlaste.' };
+        if (!currentUserId) return { success: false, error: 'Pro přidání do oblíbených se přihlaste.' };
 
-        const id = Number(itemId);
-        const idx = this.data.favorites.findIndex(f => f.user_id === currentUserId && f.item_id === id);
+        const index = this.data.favorites.findIndex(
+            f => f.user_id === currentUserId && f.item_id === Number(itemId)
+        );
 
         let isFav = false;
-        let message = '';
-
-        if (idx > -1) {
-            this.data.favorites.splice(idx, 1);
+        if (index >= 0) {
+            this.data.favorites.splice(index, 1);
             isFav = false;
-            message = 'Odebráno z oblíbených.';
         } else {
-            this.data.favorites.push({ user_id: currentUserId, item_id: id });
+            this.data.favorites.push({ user_id: currentUserId, item_id: Number(itemId) });
             isFav = true;
-            message = 'Přidáno do oblíbených položek!';
         }
 
         this.saveDatabase();
-        return { success: true, is_favorite: isFav, message: message };
+        return {
+            success: true,
+            is_favorite: isFav,
+            message: isFav ? 'Uloženo do oblíbených' : 'Odebráno z oblíbených'
+        };
     }
 
-    addInquiry(itemId, message, currentUserId, buyerId = null) {
-        if (!currentUserId) return { success: false, error: 'Pro odeslání zprávy se prosím přihlaste.' };
-        if (!message || !message.trim()) return { success: false, error: 'Zpráva nesmí být prázdná.' };
+    // --- INQUIRIES & CHAT ---
+
+    addInquiry(itemId, message, senderId, targetBuyerId = null) {
+        if (!senderId) return { success: false, error: 'Pro odeslání zprávy se musíte přihlásit.' };
 
         const item = this.data.items.find(i => i.id === Number(itemId));
-        if (!item) return { success: false, error: 'Položka nenalezena.' };
+        if (!item) return { success: false, error: 'Nabídka nebyla nalezena.' };
 
-        // Determine who the buyer thread belongs to:
-        // If current user is the seller/admin, buyerId must be target buyer.
-        // If current user is a buyer, buyerId is currentUserId.
-        const isItemSeller = currentUserId === item.user_id || (this.data.users.find(u => u.id === currentUserId)?.role === 'admin' && buyerId);
-        const targetBuyerId = isItemSeller ? (buyerId ? Number(buyerId) : null) : currentUserId;
+        const isSeller = senderId === item.user_id;
+        const buyerId = isSeller ? targetBuyerId : senderId;
 
-        if (!targetBuyerId) {
-            return { success: false, error: 'Není vybrán zájemce, kterému chcete odpovědět.' };
+        if (!buyerId) {
+            return { success: false, error: 'Chybí identifikátor příjemce zprávy.' };
         }
 
-        const nextId = this.data.inquiries.length > 0 ? Math.max(...this.data.inquiries.map(i => i.id || 0)) + 1 : 1;
-        const newInq = {
+        const nextId = (this.data.inquiries || []).length > 0 ? Math.max(...this.data.inquiries.map(i => i.id)) + 1 : 1;
+
+        const inq = {
             id: nextId,
             item_id: Number(itemId),
-            buyer_id: Number(targetBuyerId),
-            sender_id: Number(currentUserId),
+            buyer_id: buyerId,
+            sender_id: senderId,
             message: message.trim(),
             created_at: new Date().toISOString()
         };
 
-        this.data.inquiries.push(newInq);
+        if (!this.data.inquiries) this.data.inquiries = [];
+        this.data.inquiries.push(inq);
         this.saveDatabase();
 
-        const sender = this.data.users.find(u => u.id === currentUserId) || {};
-        return {
-            success: true,
-            message: 'Zpráva byla uložena do chatu!',
-            inquiry: {
-                id: newInq.id,
-                item_id: newInq.item_id,
-                buyer_id: newInq.buyer_id,
-                sender_id: newInq.sender_id,
-                message: newInq.message,
-                sender_name: sender.name || 'Kolega',
-                sender_department: sender.department || 'SMC',
-                sender_avatar: sender.avatar_text || 'SM',
-                is_from_seller: currentUserId === item.user_id,
-                created_at: newInq.created_at
-            }
-        };
+        return { success: true, inquiry: inq };
     }
 
-    // Export SQLite dump including base64 image strings in TEXT column
-    exportSQLiteDump() {
-        let sql = '-- SMC Marketplace SQLite Database Dump (Obrázky uloženy přímo v databázi jako Base64 TEXT)\n';
-        sql += '-- Vytvořeno: ' + new Date().toISOString() + '\n\n';
+    // --- REVIEWS & REPUTATION (FR-11) ---
 
-        sql += `CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    name TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'employee',
-    department TEXT NOT NULL,
-    email TEXT,
-    phone TEXT,
-    avatar_text TEXT
-);\n\n`;
+    addReview(targetUserId, reviewerId, itemId, rating, comment) {
+        if (!this.data.reviews) this.data.reviews = [];
 
-        this.data.users.forEach(u => {
-            sql += `INSERT INTO users (id, username, password, name, role, department, email, phone, avatar_text) VALUES (${u.id}, '${u.username}', '${u.password}', '${u.name.replace(/'/g, "''")}', '${u.role}', '${u.department.replace(/'/g, "''")}', '${u.email}', '${u.phone}', '${u.avatar_text}');\n`;
+        const nextId = this.data.reviews.length > 0 ? Math.max(...this.data.reviews.map(r => r.id)) + 1 : 1;
+        const item = this.data.items.find(i => i.id === Number(itemId));
+
+        const review = {
+            id: nextId,
+            item_id: Number(itemId),
+            reviewer_id: Number(reviewerId),
+            target_user_id: Number(targetUserId),
+            rating: Math.min(5, Math.max(1, Number(rating) || 5)),
+            comment: (comment || '').trim(),
+            transaction_type: item ? item.price_type : 'sell',
+            created_at: new Date().toISOString()
+        };
+
+        this.data.reviews.push(review);
+
+        const userReviews = this.data.reviews.filter(r => r.target_user_id === Number(targetUserId));
+        const avg = userReviews.reduce((sum, r) => sum + r.rating, 0) / userReviews.length;
+
+        const targetUser = this.data.users.find(u => u.id === Number(targetUserId));
+        if (targetUser) {
+            targetUser.rating = Math.round(avg * 10) / 10;
+            targetUser.rating_count = userReviews.length;
+        }
+
+        this.addAuditLog(reviewerId, 'add_review', 'user', targetUserId, `Hodnocení ${rating} hvězdiček uživateli`);
+        this.saveDatabase();
+
+        return { success: true, review };
+    }
+
+    getUserReviews(userId) {
+        const reviews = (this.data.reviews || []).filter(r => r.target_user_id === Number(userId));
+        return reviews.map(r => {
+            const reviewer = this.data.users.find(u => u.id === r.reviewer_id) || {};
+            return {
+                ...r,
+                reviewer_name: reviewer.display_name || reviewer.name || 'Kolega',
+                reviewer_avatar: reviewer.avatar_text || 'ZK'
+            };
+        });
+    }
+
+    // --- REPORTING & MODERATION (FR-12, FR-13, FR-14, NFR-06) ---
+
+    reportItem(itemId, reason, details, reporterId) {
+        if (!reporterId) return { success: false, error: 'Pro nahlášení inzerátu se musíte přihlásit.' };
+
+        const item = this.data.items.find(i => i.id === Number(itemId));
+        if (!item) return { success: false, error: 'Položka nebyla nalezena.' };
+
+        if (!this.data.reports) this.data.reports = [];
+        const nextId = this.data.reports.length > 0 ? Math.max(...this.data.reports.map(r => r.id)) + 1 : 1;
+
+        const report = {
+            id: nextId,
+            item_id: Number(itemId),
+            reporter_id: Number(reporterId),
+            reason: reason,
+            details: (details || '').trim(),
+            status: 'pending',
+            action_taken: null,
+            moderator_reason: null,
+            created_at: new Date().toISOString()
+        };
+
+        this.data.reports.push(report);
+        this.addAuditLog(reporterId, 'report_create', 'report', report.id, `Nahlášení inzerátu #${itemId} z důvodu: ${reason}`);
+        this.saveDatabase();
+
+        return { success: true, message: 'Inzerát byl nahlášen a odeslán moderátorům komunity k prověření.' };
+    }
+
+    getReports(statusFilter = null) {
+        let reports = this.data.reports || [];
+        if (statusFilter) {
+            reports = reports.filter(r => r.status === statusFilter);
+        }
+
+        return reports.map(r => {
+            const item = this.data.items.find(i => i.id === r.item_id) || {};
+            const reporter = this.data.users.find(u => u.id === r.reporter_id) || {};
+            const seller = this.data.users.find(u => u.id === item.user_id) || {};
+            return {
+                ...r,
+                item_title: item.title || 'Smazaný inzerát',
+                item_status: item.status || 'unknown',
+                seller_name: seller.display_name || seller.name || 'Neznámý',
+                reporter_name: reporter.display_name || reporter.name || 'Anonymní člen'
+            };
+        });
+    }
+
+    resolveReport(reportId, action, moderatorId, comment = '') {
+        const report = (this.data.reports || []).find(r => r.id === Number(reportId));
+        if (!report) return { success: false, error: 'Nahlášení nebylo nalezeno.' };
+
+        const item = this.data.items.find(i => i.id === report.item_id);
+
+        report.status = 'resolved';
+        report.action_taken = action;
+        report.moderator_id = moderatorId;
+        report.moderator_reason = comment;
+        report.resolved_at = new Date().toISOString();
+
+        if (action === 'item_removed' && item) {
+            item.status = 'removed_by_moderator';
+            this.addAuditLog(moderatorId, 'moderation_remove_item', 'item', item.id, `Moderátor odstranil inzerát #${item.id}`);
+        } else {
+            this.addAuditLog(moderatorId, 'moderation_dismiss_report', 'report', report.id, `Moderátor zamítl report #${report.id} jako neopodstatněný`);
+        }
+
+        this.saveDatabase();
+        return { success: true, message: action === 'item_removed' ? 'Inzerát byl stažen z komunity.' : 'Nahlášení bylo zamítnuto a inzerát ponechán.' };
+    }
+
+    // --- AUDIT LOGS (NFR-06) ---
+
+    addAuditLog(userId, action, targetType, targetId, details) {
+        if (!this.data.audit_logs) this.data.audit_logs = [];
+        const nextId = this.data.audit_logs.length > 0 ? Math.max(...this.data.audit_logs.map(a => a.id)) + 1 : 1;
+
+        this.data.audit_logs.push({
+            id: nextId,
+            user_id: userId,
+            action,
+            target_type: targetType,
+            target_id: targetId,
+            details,
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    getAuditLogs() {
+        return (this.data.audit_logs || []).slice().reverse();
+    }
+
+    // --- GDPR DATA EXPORT & RIGHT TO ERASURE (FR-16) ---
+
+    exportGdprData(userId) {
+        const user = this.data.users.find(u => u.id === Number(userId));
+        if (!user) return null;
+
+        const myItems = this.data.items.filter(i => i.user_id === Number(userId));
+        const myInquiries = (this.data.inquiries || []).filter(i => i.sender_id === Number(userId) || i.buyer_id === Number(userId));
+        const myReviewsGiven = (this.data.reviews || []).filter(r => r.reviewer_id === Number(userId));
+        const myReviewsReceived = (this.data.reviews || []).filter(r => r.target_user_id === Number(userId));
+        const myFavorites = (this.data.favorites || []).filter(f => f.user_id === Number(userId));
+
+        const exportData = {
+            export_timestamp: new Date().toISOString(),
+            regulation: "GDPR (General Data Protection Regulation) - Article 15 & 20",
+            profile: {
+                id: user.id,
+                username: user.username,
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                department: user.department,
+                location: user.location,
+                rating: user.rating,
+                registered_at: user.registered_at
+            },
+            my_listings: myItems,
+            my_chat_messages: myInquiries,
+            my_favorites: myFavorites,
+            reviews_given: myReviewsGiven,
+            reviews_received: myReviewsReceived
+        };
+
+        return JSON.stringify(exportData, null, 2);
+    }
+
+    deleteAccount(userId) {
+        const userIndex = this.data.users.findIndex(u => u.id === Number(userId));
+        if (userIndex === -1) return { success: false, error: 'Uživatel nebyl nalezen.' };
+
+        const user = this.data.users[userIndex];
+
+        this.data.items.forEach(item => {
+            if (item.user_id === Number(userId)) {
+                item.status = 'deleted';
+                item.title = '[Smazáno uživatelem podle GDPR]';
+                item.description = '';
+            }
         });
 
-        sql += `\nCREATE TABLE IF NOT EXISTS categories (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    icon TEXT NOT NULL,
-    badge_color TEXT NOT NULL
-);\n\n`;
+        this.data.favorites = (this.data.favorites || []).filter(f => f.user_id !== Number(userId));
+        this.data.users.splice(userIndex, 1);
 
-        this.data.categories.forEach(c => {
-            sql += `INSERT INTO categories (id, name, icon, badge_color) VALUES ('${c.id}', '${c.name.replace(/'/g, "''")}', '${c.icon}', '${c.badge_color}');\n`;
+        this.addAuditLog(userId, 'user_gdpr_delete', 'user', userId, `Účet uživatele ${user.username} byl trvale smazán na základě GDPR`);
+        this.saveDatabase();
+        this.logout();
+
+        return { success: true, message: 'Váš účet a všechny související inzeráty byly trvale smazány v souladu s GDPR.' };
+    }
+
+    // --- USER MANAGEMENT & CORPORATE ACCOUNTS (ADMIN ONLY) ---
+
+    getAllUsers(roleFilter = '', searchQuery = '') {
+        let users = this.data.users.map(u => {
+            const userItems = this.data.items.filter(i => i.user_id === u.id && i.status !== 'deleted');
+            const activeItems = userItems.filter(i => i.status === 'active');
+            return {
+                id: u.id,
+                username: u.username,
+                name: u.name,
+                display_name: u.display_name || u.name,
+                role: u.role || 'user',
+                department: u.department || 'Zaměstnanec',
+                location: u.location || '',
+                email: u.email || '',
+                phone: u.phone || '',
+                avatar_text: u.avatar_text || u.name.substring(0, 2).toUpperCase(),
+                rating: u.rating || 5.0,
+                rating_count: u.rating_count || 0,
+                registered_at: u.registered_at,
+                is_banned: Boolean(u.is_banned),
+                is_official: Boolean(u.is_official || u.role === 'official_smc' || u.username === 'smc'),
+                items_count: userItems.length,
+                active_items_count: activeItems.length
+            };
         });
 
-        sql += `\nCREATE TABLE IF NOT EXISTS items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    category_id TEXT NOT NULL,
-    price REAL DEFAULT 0,
-    price_type TEXT NOT NULL DEFAULT 'fixed',
-    condition TEXT NOT NULL DEFAULT 'new',
-    location TEXT NOT NULL,
-    image_base64 TEXT NOT NULL,
-    user_id INTEGER NOT NULL,
-    status TEXT NOT NULL DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    views_count INTEGER DEFAULT 0
-);\n\n`;
+        if (roleFilter) {
+            if (roleFilter === 'user') {
+                users = users.filter(u => u.role === 'user' && !u.is_official);
+            } else if (roleFilter === 'moderator') {
+                users = users.filter(u => u.role === 'moderator');
+            } else if (roleFilter === 'official_smc') {
+                users = users.filter(u => u.is_official || u.role === 'official_smc');
+            } else if (roleFilter === 'admin') {
+                users = users.filter(u => u.role === 'admin');
+            }
+        }
 
-        this.data.items.forEach(i => {
-            const b64 = (i.image_base64 || '').replace(/'/g, "''");
-            sql += `INSERT INTO items (id, title, description, category_id, price, price_type, condition, location, image_base64, user_id, status, created_at, views_count) VALUES (${i.id}, '${i.title.replace(/'/g, "''")}', '${i.description.replace(/'/g, "''")}', '${i.category_id}', ${i.price}, '${i.price_type}', '${i.condition}', '${i.location.replace(/'/g, "''")}', '${b64}', ${i.user_id}, '${i.status}', '${i.created_at}', ${i.views_count});\n`;
-        });
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase().trim();
+            users = users.filter(u =>
+                (u.name && u.name.toLowerCase().includes(q)) ||
+                (u.username && u.username.toLowerCase().includes(q)) ||
+                (u.email && u.email.toLowerCase().includes(q)) ||
+                (u.department && u.department.toLowerCase().includes(q))
+            );
+        }
 
-        return sql;
+        return users;
+    }
+
+    updateUserRole(userId, newRole, adminId) {
+        const user = this.data.users.find(u => u.id === Number(userId));
+        if (!user) return { success: false, error: 'Uživatel nebyl nalezen.' };
+        if (user.role === 'admin') return { success: false, error: 'Roli hlavního administrátora nelze měnit.' };
+
+        const oldRole = user.role;
+        user.role = newRole;
+        this.addAuditLog(adminId, 'user_role_change', 'user', user.id, `Změna role uživatele ${user.name} z ${oldRole} na ${newRole}`);
+        this.saveDatabase();
+
+        const roleText = newRole === 'moderator' ? 'moderátora' : 'běžného člena';
+        return { success: true, message: `Role uživatele ${user.name} byla úspěšně změněna na ${roleText}.` };
+    }
+
+    updateUserPassword(userId, newPassword, adminId) {
+        const user = this.data.users.find(u => u.id === Number(userId));
+        if (!user) return { success: false, error: 'Uživatel nebyl nalezen.' };
+        if (!newPassword || newPassword.trim().length < 3) {
+            return { success: false, error: 'Heslo musí mít alespoň 3 znaky.' };
+        }
+
+        user.password = newPassword.trim();
+        this.addAuditLog(adminId, 'user_password_change', 'user', user.id, `Administrátor změnil heslo uživatele ${user.name}`);
+        this.saveDatabase();
+
+        return { success: true, message: `Heslo pro uživatele ${user.name} bylo úspěšně změněno.` };
+    }
+
+    createCompanyAccount(companyData, adminId) {
+        if (!companyData.name || !companyData.username || !companyData.password) {
+            return { success: false, error: 'Vyplňte prosím název, přihlašovací jméno i heslo.' };
+        }
+
+        const usernameQuery = companyData.username.trim().toLowerCase();
+        if (this.data.users.some(u => u.username.toLowerCase() === usernameQuery)) {
+            return { success: false, error: 'Toto přihlašovací jméno je již obsazené.' };
+        }
+
+        const nextId = this.data.users.length > 0 ? Math.max(...this.data.users.map(u => u.id)) + 1 : 1;
+        const initials = companyData.name.split(' ').map(n => n[0]).join('').substring(0, 3).toUpperCase() || 'SMC';
+
+        const newCompany = {
+            id: nextId,
+            username: usernameQuery,
+            password: companyData.password.trim(),
+            name: companyData.name.trim(),
+            display_name: `${companyData.name.trim()} (Firma)`,
+            role: 'official_smc',
+            is_official: true,
+            department: companyData.department || 'Správa majetku & Technická údržba závodu',
+            location: companyData.location || 'Areál závodu SMC • Výdejna expedice / Vrátnice',
+            email: companyData.email || 'odprodej@smc.cz',
+            phone: companyData.phone || '+421 41 500 1234',
+            avatar_text: initials,
+            rating: 5.0,
+            rating_count: 0,
+            registered_at: new Date().toISOString(),
+            bio: companyData.bio || 'Oficiální firemní účet SMC pro odprodej a darování vyřazeného vybavení.'
+        };
+
+        this.data.users.push(newCompany);
+        this.addAuditLog(adminId, 'company_account_create', 'user', newCompany.id, `Vytvoření nového firemního účtu SMC: ${newCompany.name}`);
+        this.saveDatabase();
+
+        return { success: true, user: newCompany, message: `Nový firemní účet "${newCompany.name}" byl úspěšně vytvořen!` };
+    }
+
+    toggleUserBan(userId, adminId) {
+        const user = this.data.users.find(u => u.id === Number(userId));
+        if (!user) return { success: false, error: 'Uživatel nebyl nalezen.' };
+        if (user.role === 'admin') return { success: false, error: 'Hlavního administrátora nelze zablokovat.' };
+
+        user.is_banned = !user.is_banned;
+        this.addAuditLog(adminId, 'user_ban_toggle', 'user', user.id, `Změna stavu blokování uživatele ${user.name}: ${user.is_banned ? 'blokován' : 'aktivní'}`);
+        this.saveDatabase();
+
+        const msg = user.is_banned ? `Účet uživatele ${user.name} byl zablokován.` : `Účet uživatele ${user.name} byl odblokován.`;
+        return { success: true, is_banned: user.is_banned, message: msg };
+    }
+
+    getUserProfileWithItems(userId) {
+        const user = this.data.users.find(u => u.id === Number(userId));
+        if (!user) return null;
+
+        const items = this.getItems({ user_id: Number(userId) });
+        const reviews = this.getUserReviews(Number(userId));
+
+        return {
+            user: {
+                id: user.id,
+                name: user.name,
+                username: user.username,
+                display_name: user.display_name || user.name,
+                role: user.role,
+                is_official: Boolean(user.is_official || user.role === 'official_smc'),
+                department: user.department,
+                location: user.location,
+                email: user.email,
+                phone: user.phone,
+                avatar_text: user.avatar_text,
+                rating: user.rating,
+                rating_count: user.rating_count,
+                registered_at: user.registered_at,
+                bio: user.bio,
+                is_banned: Boolean(user.is_banned)
+            },
+            items,
+            reviews
+        };
     }
 }
 
-// Global database instance
-window.EMBEDDED_IMAGES = EMBEDDED_IMAGES;
+// Global initialization
 window.smcDb = new SMCLocalDatabase();
