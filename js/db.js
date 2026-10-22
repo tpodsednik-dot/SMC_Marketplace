@@ -1409,6 +1409,7 @@ class SMCLocalDatabase {
             avatar_text: initials,
             rating: 5.0,
             rating_count: 0,
+            rules_accepted: false,
             registered_at: new Date().toISOString(),
             bio: 'Člen zaměstnanecké komunity.'
         };
@@ -1430,6 +1431,18 @@ class SMCLocalDatabase {
             return raw ? JSON.parse(raw) : null;
         } catch {
             return null;
+        }
+    }
+
+    setCurrentUser(user) {
+        try {
+            if (user) {
+                localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
+            } else {
+                localStorage.removeItem(SESSION_STORAGE_KEY);
+            }
+        } catch (e) {
+            console.error('Chyba při ukládání session do localStorage:', e);
         }
     }
 
@@ -2235,6 +2248,7 @@ class SMCLocalDatabase {
                 avatar_text: user.avatar_text,
                 rating: user.rating,
                 rating_count: user.rating_count,
+                rules_accepted: Boolean(user.rules_accepted),
                 registered_at: user.registered_at,
                 bio: user.bio,
                 is_banned: Boolean(user.is_banned)
@@ -2242,6 +2256,67 @@ class SMCLocalDatabase {
             items,
             reviews
         };
+    }
+
+    updateUserProfile(userId, contactData) {
+        const user = this.data.users.find(u => u.id === Number(userId));
+        if (!user) return { success: false, error: 'Uživatel nebyl nalezen.' };
+
+        if (contactData.email !== undefined) {
+            user.email = contactData.email.trim();
+        }
+
+        if (contactData.phone !== undefined) {
+            let rawPhone = contactData.phone.trim();
+            if (rawPhone) {
+                let digits = rawPhone.replace(/[^\d]/g, '');
+                if (digits.startsWith('420')) digits = digits.substring(3);
+                else if (digits.startsWith('421')) digits = digits.substring(3);
+                user.phone = digits ? `+420 ${digits.replace(/(\d{3})(?=\d)/g, '$1 ')}`.trim() : '';
+            } else {
+                user.phone = '';
+            }
+        }
+
+        const curr = this.getCurrentUser();
+        if (curr && curr.id === user.id) {
+            curr.email = user.email;
+            curr.phone = user.phone;
+            this.setCurrentUser(curr);
+        }
+
+        this.addAuditLog(userId, 'profile_contact_update', 'user', user.id, `Aktualizace kontaktu: Tel ${user.phone}, E-mail ${user.email}`);
+        this.saveDatabase();
+
+        // Odeslání do MySQL přes API
+        this.sendApiRequest('updateProfile', {
+            user_id: user.id,
+            email: user.email,
+            phone: user.phone
+        });
+
+        return { success: true, user, message: 'Kontaktní údaje byly úspěšně uloženy.' };
+    }
+
+    acceptCommunityRules(userId) {
+        const user = this.data.users.find(u => u.id === Number(userId));
+        if (!user) return { success: false, error: 'Uživatel nebyl nalezen.' };
+
+        user.rules_accepted = true;
+
+        const curr = this.getCurrentUser();
+        if (curr && curr.id === user.id) {
+            curr.rules_accepted = true;
+            this.setCurrentUser(curr);
+        }
+
+        this.addAuditLog(userId, 'rules_accepted', 'user', user.id, 'Potvrzení pravidel a GDPR');
+        this.saveDatabase();
+
+        // Odeslání do MySQL přes API
+        this.sendApiRequest('acceptRules', { user_id: user.id });
+
+        return { success: true, message: 'Pravidla byla úspěšně potvrzena.' };
     }
 }
 

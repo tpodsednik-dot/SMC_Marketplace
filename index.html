@@ -394,6 +394,110 @@
                 </div>
             </div>
 
+            <!-- NEW USER ONBOARDING: PRAVIDLA KOMUNITY & GDPR (ZOBRAZUJE SE POKUD NOVÝ UŽIVATEL JEŠTĚ NEPOTVRDIL PRAVIDLA) -->
+            <section id="new-user-rules-onboarding" class="onboarding-rules-section" style="display: none;">
+                <div class="onboarding-rules-card">
+                    <div class="onboarding-header">
+                        <div class="onboarding-icon">
+                            <i class="fa-solid fa-handshake-angle"></i>
+                        </div>
+                        <div class="onboarding-title-wrap">
+                            <h2>Vítejte v Komunitním tržišti zaměstnanců SMC</h2>
+                            <p>Před prvním zobrazením nabídek v komunitě se prosím seznamte s pravidly vzájemné důvěry a ochranou osobních údajů (GDPR).</p>
+                        </div>
+                    </div>
+
+                    <div class="onboarding-body-grid">
+                        <!-- Pravidla komunity -->
+                        <div class="onboarding-box">
+                            <div class="onboarding-box-title">
+                                <i class="fa-solid fa-scale-balanced" style="color: var(--smc-blue-primary);"></i>
+                                <h3>Základní pravidla komunitního tržiště</h3>
+                            </div>
+                            <ul class="onboarding-list">
+                                <li>
+                                    <i class="fa-solid fa-clock"></i>
+                                    <div>
+                                        <strong>Vše výhradně mimo pracovní dobu</strong>
+                                        <span>Prohlížení inzerátů, předání věcí i finanční vyrovnání probíhají výhradně mimo vaši pracovní směnu.</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <i class="fa-solid fa-building-shield"></i>
+                                    <div>
+                                        <strong>Ochrana majetku SMC</strong>
+                                        <span>Je přísně zakázáno nabízet jakýkoliv majetek nebo materiál firmy SMC bez oficiálního vyřazovacího protokolu.</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <i class="fa-solid fa-ban"></i>
+                                    <div>
+                                        <strong>Zákaz nelegálního a nebezpečného zboží</strong>
+                                        <span>Platí přísný zákaz prodeje zbraní, pyrotechniky, omamných látek, alkoholu, léků na předpis a nebezpečných chemikálií.</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <i class="fa-solid fa-users"></i>
+                                    <div>
+                                        <strong>Férovost a vzájemný respekt</strong>
+                                        <span>Popisujte věci pravdivě, upozorněte na případné vady a chovejte se k sobě jako správní a spolehliví kolegové.</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Ochrana údajů a GDPR -->
+                        <div class="onboarding-box">
+                            <div class="onboarding-box-title">
+                                <i class="fa-solid fa-shield-halved" style="color: #10b981;"></i>
+                                <h3>Ochrana osobních údajů (GDPR)</h3>
+                            </div>
+                            <ul class="onboarding-list">
+                                <li>
+                                    <i class="fa-solid fa-id-badge"></i>
+                                    <div>
+                                        <strong>Pouze ověření zaměstnanci</strong>
+                                        <span>Platforma je přístupná výhradně zaměstnancům našeho závodu. Vaše jméno a oddělení vidí jen kolegové z podniku.</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <i class="fa-solid fa-phone"></i>
+                                    <div>
+                                        <strong>Přímý kontakt bez chatu</strong>
+                                        <span>Váš telefon nebo e-mail slouží výhradně pro přímou domluvu s kolegy (chat byl z aplikace odstraněn).</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <i class="fa-solid fa-file-export"></i>
+                                    <div>
+                                        <strong>Právo na export dat a výmaz</strong>
+                                        <span>Kdykoliv máte plnou kontrolu nad svými údaji. V profilu si můžete stáhnout kopii dat (GDPR) nebo svůj účet trvale smazat.</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <i class="fa-solid fa-lock"></i>
+                                    <div>
+                                        <strong>Bezpečnost a audit</strong>
+                                        <span>Data nejsou předávána žádným třetím stranám ani marketingovým systémům.</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Potvrzení a odkliknutí -->
+                    <div class="onboarding-footer">
+                        <label class="onboarding-checkbox-label" for="onboarding-rules-checkbox">
+                            <input type="checkbox" id="onboarding-rules-checkbox" onchange="toggleOnboardingAcceptBtn()">
+                            <span>Seznámil(a) jsem se s pravidly komunity a zásadami zpracování osobních údajů (GDPR), porozuměl(a) jsem jim a zavazuji se je dodržovat.</span>
+                        </label>
+                        <button type="button" id="onboarding-accept-btn" class="btn btn-primary btn-lg" onclick="handleAcceptCommunityRules()" disabled>
+                            <i class="fa-solid fa-circle-check"></i> Potvrdit a vstoupit do tržiště
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <!-- MARKETPLACE WRAPPER (FILTER CONTROLS & ITEMS) -->
             <div id="marketplace-content-wrapper">
 
@@ -559,7 +663,7 @@
             <button class="drawer-tab" data-tab="profile" onclick="switchDrawerTab('profile')">
                 <i class="fa-solid fa-shield-halved"></i> Profil & GDPR
             </button>
-            <button class="drawer-tab" data-tab="switch-user" onclick="switchDrawerTab('switch-user')">
+            <button class="drawer-tab" data-tab="switch-user" id="drawer-tab-switch-user-btn" onclick="switchDrawerTab('switch-user')">
                 <i class="fa-solid fa-users-gear"></i> Přepnout
             </button>
         </div>
@@ -593,7 +697,45 @@
             <!-- TAB 3: PROFIL, HODNOCENÍ & GDPR (FR-11, FR-16) -->
             <div id="drawer-tab-profile" class="drawer-tab-pane">
                 <div class="pane-header">
-                    <h5>Důvěryhodnost a ochrana soukromí (GDPR)</h5>
+                    <h5>Můj profil, kontakty & GDPR</h5>
+                </div>
+
+                <!-- Kontaktní údaje (Telefon s pevným +420 a E-mail) -->
+                <div class="guideline-card" id="profile-contact-card" style="margin-bottom: 14px; background: #f8fafc; border: 1.5px solid #cbd5e1;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <h5 style="margin: 0; font-size: 0.95rem; color: var(--smc-blue-primary);">
+                            <i class="fa-solid fa-address-card"></i> Moje kontaktní údaje
+                        </h5>
+                        <span class="badge" style="background: #e0f2fe; color: #0369a1; font-size: 0.72rem;">Pro nabídky</span>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+                        Telefon a e-mail umožňují kolegům kontaktovat vás přímo ohledně nabídek. U telefonu je natvrdo nastaveno předčíslí <strong>+420</strong>.
+                    </p>
+                    <form id="profile-contact-form" onsubmit="handleSaveContactProfile(event)">
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label for="profile-phone-input" style="font-weight: 600; font-size: 0.82rem; display: block; margin-bottom: 4px;">
+                                <i class="fa-solid fa-phone" style="color: var(--smc-blue-primary);"></i> Telefonní číslo:
+                            </label>
+                            <div class="phone-input-group">
+                                <span class="phone-prefix-badge">+420</span>
+                                <input type="tel" id="profile-phone-input" class="phone-input-field" placeholder="např. 777 123 456" maxlength="15" autocomplete="tel-national">
+                            </div>
+                            <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 3px;">
+                                Předčíslí +420 je pevně nastaveno, zadejte zbývajících 9 číslic.
+                            </span>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label for="profile-email-input" style="font-weight: 600; font-size: 0.82rem; display: block; margin-bottom: 4px;">
+                                <i class="fa-solid fa-envelope" style="color: var(--smc-blue-primary);"></i> Kontaktní e-mail:
+                            </label>
+                            <input type="email" id="profile-email-input" class="form-control" placeholder="např. tomas.novak@smc.cz" style="width: 100%; padding: 8px 12px; border: 1.5px solid var(--border-color); border-radius: 8px; font-size: 0.88rem;">
+                        </div>
+
+                        <button type="submit" class="btn btn-sm btn-primary" id="save-contact-btn" style="width: 100%; padding: 9px; font-weight: 600;">
+                            <i class="fa-solid fa-floppy-disk"></i> Uložit kontaktní údaje
+                        </button>
+                    </form>
                 </div>
 
                 <div class="guideline-card" style="margin-bottom: 14px;">
@@ -811,6 +953,38 @@
             <!-- Mobile Sticky Quick Action Bar -->
             <div id="detail-mobile-action-bar" class="detail-mobile-action-bar">
                 <!-- Dynamically mirrored primary contact or edit button for smartphones -->
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTACT REQUIRED MODAL (UPOZORNĚNÍ: PRO VYTVOŘENÍ NABÍDKY JE NUTNÝ TELEFON NEBO MAIL) -->
+    <div id="contact-required-modal" class="modal-overlay" onclick="if(event.target === this) closeContactRequiredModal()">
+        <div class="modal-container" style="max-width: 520px; padding: 32px 28px; text-align: center; border-radius: 18px;">
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: #fef3c7; color: #d97706; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.2);">
+                <i class="fa-solid fa-address-book"></i>
+            </div>
+            <h2 style="font-size: 1.35rem; color: #1e293b; margin-bottom: 10px; font-weight: 700;">
+                Před vytvořením nabídky doplňte kontakt
+            </h2>
+            <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 14px 16px; text-align: left; margin: 16px 0 20px; font-size: 0.88rem; color: #92400e; line-height: 1.5;">
+                <div style="display: flex; gap: 12px; align-items: flex-start;">
+                    <i class="fa-solid fa-circle-info" style="font-size: 1.25rem; margin-top: 2px; color: #d97706; flex-shrink: 0;"></i>
+                    <div>
+                        <strong>Proč je kontakt povinný?</strong><br>
+                        Z aplikace byl odstraněn interní chat. Ostatní kolegové vás mohou ohledně inzerátu kontaktovat <strong>výhradně telefonicky nebo e-mailem</strong>. Bez vyplněného kontaktu by se s vámi zájemci neměli jak spojit.
+                    </div>
+                </div>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 24px;">
+                Doplňte prosím do svého profilu <strong>telefonní číslo (+420)</strong> nebo <strong>e-mail</strong>, aby nabídka mohla být zveřejněna.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button type="button" class="btn btn-primary btn-lg" onclick="goToProfileForContact()">
+                    <i class="fa-solid fa-user-pen"></i> Přejít do profilu a doplnit kontakt
+                </button>
+                <button type="button" class="btn btn-outline" onclick="closeContactRequiredModal()">
+                    Rozumím, doplním později
+                </button>
             </div>
         </div>
     </div>

@@ -194,11 +194,17 @@ function setUserSession(user) {
     }
 
     if (drawerRating) drawerRating.textContent = Number(user.rating || 5.0).toFixed(1);
-    if (drawerRatingCount) drawerRatingCount.textContent = user.reviews_count || 0;
+    if (drawerRatingCount) drawerRatingCount.textContent = user.rating_count || user.reviews_count || 0;
     if (drawerDept) drawerDept.textContent = user.department || 'Výroba a montáž';
     if (drawerLocation) drawerLocation.textContent = user.location || 'Bytča / Žilina';
-    if (drawerEmail) drawerEmail.textContent = user.email || 'kontakt@zamestnanec.cz';
-    if (drawerPhone) drawerPhone.textContent = user.phone || '+421 900 000 000';
+    if (drawerEmail) drawerEmail.textContent = user.email || 'Nezadáno';
+    if (drawerPhone) drawerPhone.textContent = user.phone || 'Nezadáno';
+
+    // 5. Hide "Přepnout účet" tab for normal users (pouze pro administrátora)
+    const switchTabBtn = document.getElementById('drawer-tab-switch-user-btn');
+    if (switchTabBtn) {
+        switchTabBtn.style.display = isAdmin ? 'flex' : 'none';
+    }
 }
 
 function showAuthModal() {
@@ -375,6 +381,22 @@ function loadCategories() {
 }
 
 function loadItems() {
+    const onboardingSec = document.getElementById('new-user-rules-onboarding');
+    const catalogWrapper = document.getElementById('marketplace-content-wrapper');
+
+    // Kontrola nových uživatelů: pokud ještě nepotvrdili pravidla & GDPR, nezobrazovat inzeráty
+    const needsOnboarding = state.currentUser && !state.currentUser.rules_accepted && state.currentUser.role !== 'admin';
+    if (needsOnboarding) {
+        if (onboardingSec) onboardingSec.style.display = 'block';
+        if (catalogWrapper) catalogWrapper.style.display = 'none';
+        return; // Inzeráty zůstávají skryté
+    } else {
+        if (onboardingSec) onboardingSec.style.display = 'none';
+        if (catalogWrapper && (!state.currentUser || state.currentUser.role !== 'admin' || state.adminViewMode !== 'dashboard')) {
+            catalogWrapper.style.display = 'block';
+        }
+    }
+
     const grid = document.getElementById('items-grid');
     const emptyState = document.getElementById('empty-state');
     const countBadge = document.getElementById('items-count-badge');
@@ -406,6 +428,30 @@ function loadItems() {
     } else {
         if (emptyState) emptyState.style.display = 'none';
         if (grid) grid.style.display = 'grid';
+    }
+}
+
+function toggleOnboardingAcceptBtn() {
+    const checkbox = document.getElementById('onboarding-rules-checkbox');
+    const btn = document.getElementById('onboarding-accept-btn');
+    if (btn) {
+        btn.disabled = !checkbox || !checkbox.checked;
+    }
+}
+
+function handleAcceptCommunityRules() {
+    if (!state.currentUser) return;
+    const btn = document.getElementById('onboarding-accept-btn');
+    if (btn) btn.disabled = true;
+
+    const result = window.smcDb.acceptCommunityRules(state.currentUser.id);
+    if (result && result.success) {
+        state.currentUser.rules_accepted = true;
+        showToast('Pravidla a GDPR byla úspěšně potvrzena. Vítejte v tržišti!', 'success');
+        loadItems();
+    } else {
+        showToast((result && result.error) || 'Chyba při potvrzování pravidel.', 'error');
+        if (btn) btn.disabled = false;
     }
 }
 
@@ -1312,6 +1358,14 @@ function toggleUserDrawer() {
         if (drawer) drawer.classList.add('active');
         if (backdrop) backdrop.classList.add('active');
         document.body.style.overflow = 'hidden';
+
+        // Skrýt Přepnout účet pro běžné uživatele
+        const switchBtn = document.getElementById('drawer-tab-switch-user-btn');
+        if (switchBtn) {
+            const isAdmin = state.currentUser && state.currentUser.role === 'admin';
+            switchBtn.style.display = isAdmin ? 'flex' : 'none';
+        }
+
         switchDrawerTab('my-items');
     }
 }
@@ -1330,10 +1384,29 @@ function openUserDrawerTab(tabId) {
     if (drawer) drawer.classList.add('active');
     if (backdrop) backdrop.classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Skrýt Přepnout účet pro běžné uživatele
+    const switchBtn = document.getElementById('drawer-tab-switch-user-btn');
+    if (switchBtn) {
+        const isAdmin = state.currentUser && state.currentUser.role === 'admin';
+        switchBtn.style.display = isAdmin ? 'flex' : 'none';
+    }
+
     switchDrawerTab(tabId);
 }
 
 function switchDrawerTab(tabId) {
+    const isAdmin = state.currentUser && state.currentUser.role === 'admin';
+    const switchBtn = document.getElementById('drawer-tab-switch-user-btn');
+    if (switchBtn) {
+        switchBtn.style.display = isAdmin ? 'flex' : 'none';
+    }
+
+    // Pokud se běžný uživatel pokusí otevřít switch-user, přesměrovat na profil
+    if (tabId === 'switch-user' && !isAdmin) {
+        tabId = 'profile';
+    }
+
     document.querySelectorAll('.drawer-tab').forEach(tab => {
         if (tab.getAttribute('data-tab') === tabId) {
             tab.classList.add('active');
@@ -1355,6 +1428,57 @@ function switchDrawerTab(tabId) {
         loadDrawerFavorites();
     } else if (tabId === 'profile') {
         loadDrawerProfileReviews();
+        populateDrawerProfileContacts();
+    }
+}
+
+function populateDrawerProfileContacts() {
+    if (!state.currentUser) return;
+    const phoneInput = document.getElementById('profile-phone-input');
+    const emailInput = document.getElementById('profile-email-input');
+
+    if (phoneInput) {
+        let raw = state.currentUser.phone || '';
+        let digits = raw.replace(/[^\d]/g, '');
+        if (digits.startsWith('420')) digits = digits.substring(3);
+        else if (digits.startsWith('421')) digits = digits.substring(3);
+        phoneInput.value = digits.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+    }
+
+    if (emailInput) {
+        emailInput.value = state.currentUser.email || '';
+    }
+}
+
+function handleSaveContactProfile(e) {
+    if (e) e.preventDefault();
+    if (!state.currentUser) return;
+
+    const phoneInput = document.getElementById('profile-phone-input');
+    const emailInput = document.getElementById('profile-email-input');
+
+    const rawPhone = phoneInput ? phoneInput.value.trim() : '';
+    const emailVal = emailInput ? emailInput.value.trim() : '';
+
+    const result = window.smcDb.updateUserProfile(state.currentUser.id, {
+        phone: rawPhone,
+        email: emailVal
+    });
+
+    if (result && result.success) {
+        state.currentUser.phone = result.user.phone;
+        state.currentUser.email = result.user.email;
+
+        // Aktualizovat zobrazení v hlavičce profilu v draweru
+        const drawerPhone = document.getElementById('drawer-user-phone');
+        const drawerEmail = document.getElementById('drawer-user-email');
+        if (drawerPhone) drawerPhone.textContent = state.currentUser.phone || 'Nezadáno';
+        if (drawerEmail) drawerEmail.textContent = state.currentUser.email || 'Nezadáno';
+
+        showToast('Kontaktní údaje byly úspěšně uloženy!', 'success');
+        populateDrawerProfileContacts();
+    } else {
+        showToast((result && result.error) || 'Chyba při ukládání kontaktu.', 'error');
     }
 }
 
@@ -1527,7 +1651,46 @@ function handleDeleteAccount() {
 // NEW ITEM MODAL (PRIDANIE PONUKY: 6 TYPOV PONÚK - FR-05)
 // ==========================================================================
 
+function openContactRequiredModal() {
+    const modal = document.getElementById('contact-required-modal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeContactRequiredModal() {
+    const modal = document.getElementById('contact-required-modal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function goToProfileForContact() {
+    closeContactRequiredModal();
+    openUserDrawerTab('profile');
+    setTimeout(() => {
+        const phoneInput = document.getElementById('profile-phone-input');
+        if (phoneInput) {
+            phoneInput.focus();
+            phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 250);
+}
+
 function openNewItemModal() {
+    if (!state.currentUser) {
+        showAuthModal();
+        return;
+    }
+
+    // Povinný kontakt (telefon nebo e-mail) pro vytvoření nové nabídky
+    const hasPhone = Boolean(state.currentUser.phone && state.currentUser.phone.trim());
+    const hasEmail = Boolean(state.currentUser.email && state.currentUser.email.trim());
+    if (!hasPhone && !hasEmail) {
+        openContactRequiredModal();
+        return;
+    }
+
     const modal = document.getElementById('new-item-modal');
     if (!modal) return;
     modal.classList.add('active');
@@ -1710,6 +1873,15 @@ function compressImageFileToBase64(file, maxWidth = 640, maxHeight = 480, qualit
 function submitNewItem(e) {
     e.preventDefault();
     if (!state.currentUser) return;
+
+    // Kontrola vyplněného kontaktu (telefon nebo e-mail)
+    const hasPhone = Boolean(state.currentUser.phone && state.currentUser.phone.trim());
+    const hasEmail = Boolean(state.currentUser.email && state.currentUser.email.trim());
+    if (!hasPhone && !hasEmail) {
+        closeNewItemModal();
+        openContactRequiredModal();
+        return;
+    }
 
     const form = document.getElementById('new-item-form');
     const formData = new FormData(form);
