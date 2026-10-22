@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SMC MARKETPLACE - LOKÁLNÍ DATABÁZOVÝ ENGINE (SQLITE SCHEMA V JAVASCRIPTU)
  * Všechny obrázky jsou uloženy PŘÍMO V DATABÁZI jako Base64 kód (Data URLs).
  * Žádné externí soubory s obrázky nejsou potřeba – vše je uvnitř databáze.
@@ -31,6 +31,13 @@ class SMCLocalDatabase {
                     parsed.inquiries.forEach(inq => {
                         if (inq.buyer_id === undefined) inq.buyer_id = inq.user_id;
                         if (inq.sender_id === undefined) inq.sender_id = inq.user_id;
+                    });
+                }
+                if (parsed.items && Array.isArray(parsed.items)) {
+                    parsed.items.forEach(item => {
+                        if (!Array.isArray(item.images) || item.images.length === 0) {
+                            item.images = item.image_base64 ? [item.image_base64] : (item.image_url ? [item.image_url] : []);
+                        }
                     });
                 }
                 return parsed;
@@ -1010,6 +1017,7 @@ class SMCLocalDatabase {
                     price_type: 'sell',
                     condition: 'like_new',
                     location: 'Žilina - Vlčince (nebo parkoviště závodu)',
+                    images: [EMBEDDED_IMAGES.tools_case, EMBEDDED_IMAGES.digital_multimeter],
                     image_base64: EMBEDDED_IMAGES.tools_case,
                     user_id: 2,
                     status: 'active',
@@ -1100,6 +1108,7 @@ class SMCLocalDatabase {
                     price_type: 'swap',
                     condition: 'like_new',
                     location: 'Bytča',
+                    images: [EMBEDDED_IMAGES.tools_case, EMBEDDED_IMAGES.welder, EMBEDDED_IMAGES.monitor],
                     image_base64: EMBEDDED_IMAGES.tools_case,
                     user_id: 1,
                     status: 'active',
@@ -1403,7 +1412,13 @@ class SMCLocalDatabase {
             };
         });
 
-        results = results.filter(i => i.status !== 'deleted' && i.status !== 'removed_by_moderator');
+        results = results.filter(i => {
+            if (i.status === 'removed_by_moderator') return false;
+            if (i.status === 'deleted') {
+                return Boolean(filters.only_favorites && i.is_favorite === 1);
+            }
+            return true;
+        });
 
         if (filters.category) {
             results = results.filter(i => i.category_id === filters.category);
@@ -1565,6 +1580,47 @@ class SMCLocalDatabase {
         return { success: true, item_id: newItem.id, message: 'Nabídka byla úspěšně zveřejněna v komunitě!' };
     }
 
+    updateItem(itemId, itemData, currentUserId) {
+        if (!currentUserId) return { success: false, error: 'Pro úpravu nabídky musíte být přihlášeni.' };
+
+        const item = this.data.items.find(i => i.id === Number(itemId));
+        if (!item) return { success: false, error: 'Nabídka nebyla nalezena.' };
+
+        const currentUser = this.data.users.find(u => u.id === currentUserId);
+        const isOwner = item.user_id === currentUserId;
+        const isMod = currentUser && (currentUser.role === 'moderator' || currentUser.role === 'admin' || currentUser.role === 'official_smc');
+
+        if (!isOwner && !isMod) {
+            return { success: false, error: 'Nemáte oprávnění upravovat tuto nabídku.' };
+        }
+
+        if (itemData.title !== undefined) item.title = itemData.title.trim();
+        if (itemData.description !== undefined) item.description = itemData.description.trim();
+        if (itemData.category_id !== undefined) item.category_id = itemData.category_id;
+        if (itemData.price_type !== undefined) item.price_type = itemData.price_type;
+        if (itemData.condition !== undefined) item.condition = itemData.condition;
+        if (itemData.location !== undefined) item.location = itemData.location.trim();
+
+        if (itemData.price !== undefined) {
+            item.price = Number(itemData.price) || 0;
+        }
+        if (item.price_type === 'free' || item.price_type === 'swap') {
+            item.price = 0;
+        }
+
+        if (itemData.image_base64) {
+            item.image_base64 = itemData.image_base64;
+            item.image_url = itemData.image_base64;
+        }
+
+        item.updated_at = new Date().toISOString();
+
+        this.addAuditLog(currentUserId, 'item_update', 'item', item.id, `Úprava nabídky: ${item.title}`);
+        this.saveDatabase();
+
+        return { success: true, item_id: item.id, message: 'Nabídka byla úspěšně upravena!' };
+    }
+
     updateItemStatus(itemId, newStatus, currentUserId) {
         const item = this.data.items.find(i => i.id === Number(itemId));
         if (!item) return { success: false, error: 'Nabídka nebyla nalezena.' };
@@ -1589,6 +1645,10 @@ class SMCLocalDatabase {
         return { success: true, message: msg };
     }
 
+    endItem(itemId, currentUserId) {
+        return this.deleteItem(itemId, currentUserId);
+    }
+
     deleteItem(itemId, currentUserId) {
         const item = this.data.items.find(i => i.id === Number(itemId));
         if (!item) return { success: false, error: 'Nabídka nebyla nalezena.' };
@@ -1598,14 +1658,15 @@ class SMCLocalDatabase {
         const isMod = currentUser && (currentUser.role === 'moderator' || currentUser.role === 'admin' || currentUser.role === 'official_smc');
 
         if (!isOwner && !isMod) {
-            return { success: false, error: 'Nemáte oprávnění smazat tuto nabídku.' };
+            return { success: false, error: 'Nemáte oprávnění ukončit nebo smazat tuto nabídku.' };
         }
 
         item.status = 'deleted';
-        this.addAuditLog(currentUserId, 'item_delete', 'item', item.id, `Smazání nabídky: ${item.title}`);
+        item.deleted_at = new Date().toISOString();
+        this.addAuditLog(currentUserId, 'item_delete', 'item', item.id, `Ukončení/smazání nabídky: ${item.title}`);
         this.saveDatabase();
 
-        return { success: true, message: 'Nabídka byla úspěšně smazána.' };
+        return { success: true, message: 'Nabídka byla úspěšně ukončena a smazána.' };
     }
 
     // --- FAVORITES ---

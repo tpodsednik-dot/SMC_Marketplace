@@ -18,7 +18,8 @@ const state = {
     onlyFavorites: false,
     onlyMyItems: false,
     currentItemDetail: null,
-    activeChatBuyerId: null,
+    detailGalleryIndex: 0,
+    detailGalleryImages: [],
     uploadedImageDataUrl: null,
     searchDebounceTimer: null,
     currentModFilter: 'pending',
@@ -469,9 +470,13 @@ function getOfferBadgeInfo(priceType, price) {
 
 function createItemCard(item) {
     const isOfficialSMC = Boolean(item.is_official || (item.username && item.username.toLowerCase() === 'smc') || item.user_id === 4);
+    const isDeleted = item.status === 'deleted';
 
     const card = document.createElement('article');
     card.className = isOfficialSMC ? 'item-card is-official-smc' : 'item-card';
+    if (isDeleted) {
+        card.classList.add('is-deleted-card');
+    }
     card.onclick = (e) => {
         if (e.target.closest('.card-fav-btn')) return;
         openItemDetail(item.id);
@@ -481,7 +486,9 @@ function createItemCard(item) {
 
     // Status tag
     let statusTag = '';
-    if (item.status === 'reserved') {
+    if (isDeleted) {
+        statusTag = `<span class="card-status-tag status-deleted"><i class="fa-solid fa-ban"></i> Smazána</span>`;
+    } else if (item.status === 'reserved') {
         statusTag = `<span class="card-status-tag status-reserved"><i class="fa-solid fa-clock"></i> Rezervováno</span>`;
     } else if (item.status === 'sold') {
         statusTag = `<span class="card-status-tag status-sold"><i class="fa-solid fa-check"></i> Dokončeno</span>`;
@@ -492,8 +499,8 @@ function createItemCard(item) {
     const isFav = item.is_favorite ? 'favorited' : '';
     const ratingDisplay = item.publisher_rating ? Number(item.publisher_rating).toFixed(1) : '5.0';
 
-    const officialTopBadge = isOfficialSMC 
-        ? `<span class="official-smc-badge"><i class="fa-solid fa-building-circle-check"></i> SMC Odprodej</span>` 
+    const officialTopBadge = isOfficialSMC
+        ? `<span class="official-smc-badge"><i class="fa-solid fa-building-circle-check"></i> SMC Odprodej</span>`
         : '';
 
     const publisherAvatarHtml = isOfficialSMC
@@ -512,27 +519,38 @@ function createItemCard(item) {
                </span>
            </div>`;
 
+    const imagesCount = (Array.isArray(item.images) && item.images.length > 0) ? item.images.length : 1;
+    const photoCountBadge = imagesCount > 1 
+        ? `<span class="photo-count-pill" title="Tato nabídka má ${imagesCount} fotografií"><i class="fa-solid fa-camera"></i> ${imagesCount}</span>` 
+        : '';
+
     card.innerHTML = `
         <!-- Úvodný obrázok & Odznaky typu ponuky -->
         <div class="card-media">
             <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.title)}" loading="lazy" onerror="this.src='./images/tools_case.jpg'">
+            ${isDeleted ? `<div class="card-deleted-overlay"><i class="fa-solid fa-ban"></i> Nabídka už byla smazána</div>` : ''}
             <div class="card-badges-top">
                 ${officialTopBadge}
                 <span class="card-category-tag">${escapeHtml(item.category_name)}</span>
                 ${statusTag}
             </div>
+            ${photoCountBadge}
             <button class="card-fav-btn ${isFav}" title="${item.is_favorite ? 'Odebrat z oblíbených' : 'Uložit do oblíbených'}" onclick="toggleFavoriteItem(${item.id}, event)">
                 <i class="fa-solid fa-heart"></i>
             </button>
-            <div class="card-price-badge ${offerInfo.className}">
-                <i class="fa-solid ${offerInfo.icon}"></i> ${escapeHtml(offerInfo.text)}: ${escapeHtml(offerInfo.priceText)}
+            <div class="card-price-badge ${isDeleted ? 'status-deleted' : offerInfo.className}">
+                <i class="fa-solid ${isDeleted ? 'fa-ban' : offerInfo.icon}"></i> ${isDeleted ? 'Nabídka už byla smazána' : `${escapeHtml(offerInfo.text)}: ${escapeHtml(offerInfo.priceText)}`}
             </div>
         </div>
 
         <!-- Telo dlaždice s názvom a informáciami o overenom kolegovi / SMC -->
         <div class="card-body">
-            <h3 class="card-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h3>
-            <p class="card-desc">${escapeHtml(item.description)}</p>
+            <h3 class="card-title" title="${escapeHtml(item.title)}" ${isDeleted ? 'style="text-decoration: line-through; color: var(--text-muted);"' : ''}>${escapeHtml(item.title)}</h3>
+            ${isDeleted ? `
+                <div class="deleted-card-notice" style="background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; margin: 8px 0; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-circle-exclamation"></i> Nabídka už byla smazána
+                </div>
+            ` : `<p class="card-desc">${escapeHtml(item.description)}</p>`}
 
             <!-- Kto ponuku zverejnil (Reputácia kolegu alebo Oficiálne SMC) -->
             <div class="card-publisher-box">
@@ -550,8 +568,7 @@ function createItemCard(item) {
                     <i class="fa-solid fa-location-dot"></i> ${escapeHtml(item.location)}
                 </span>
                 <div class="card-stats-info">
-                    <span title="Počet zobrazení nabídky"><i class="fa-solid fa-eye"></i> ${item.views_count}</span>
-                    <span title="Počet zájemců v chatu"><i class="fa-solid fa-comments"></i> ${item.inquiries_count}</span>
+                    <span title="Počet zobrazení nabídky"><i class="fa-solid fa-eye"></i> ${item.views_count} zobrazení</span>
                 </div>
             </div>
         </div>
@@ -575,19 +592,17 @@ function openItemDetail(itemId) {
 
     state.currentItemDetail = item;
 
-    // Chat thread setup
-    if (item.is_seller) {
-        if (!state.activeChatBuyerId || !(item.buyer_threads && item.buyer_threads.some(t => t.buyer_id === state.activeChatBuyerId))) {
-            state.activeChatBuyerId = (item.buyer_threads && item.buyer_threads.length > 0) ? item.buyer_threads[0].buyer_id : null;
-        }
-    } else {
-        state.activeChatBuyerId = state.currentUser ? state.currentUser.id : null;
-    }
+    // Top Category / Title Preview in sticky navbar
+    const topCat = document.getElementById('detail-top-category-preview');
+    if (topCat) topCat.textContent = item.category_name || 'Detail nabídky';
 
-    // Image & Badges
-    const img = document.getElementById('detail-img');
-    img.src = item.image_url;
-    img.onerror = () => { img.src = './images/tools_case.jpg'; };
+    // Image Gallery Setup (FR-05, multi-image up to 15)
+    const imagesList = (Array.isArray(item.images) && item.images.length > 0)
+        ? item.images
+        : (item.image_url ? [item.image_url] : ['./images/tools_case.jpg']);
+    state.detailGalleryImages = imagesList;
+    state.detailGalleryIndex = 0;
+    renderDetailGallery();
 
     const offerInfo = getOfferBadgeInfo(item.price_type, item.price);
     const offerBadge = document.getElementById('detail-offer-badge');
@@ -601,7 +616,10 @@ function openItemDetail(itemId) {
 
     const statusBadge = document.getElementById('detail-status-badge');
     if (statusBadge) {
-        if (item.status === 'reserved') {
+        if (item.status === 'deleted') {
+            statusBadge.className = 'badge status-deleted';
+            statusBadge.innerHTML = '<i class="fa-solid fa-ban"></i> Nabídka už byla smazána';
+        } else if (item.status === 'reserved') {
             statusBadge.className = 'badge status-reserved';
             statusBadge.innerHTML = '<i class="fa-solid fa-clock"></i> Rezervováno';
         } else if (item.status === 'sold') {
@@ -610,6 +628,30 @@ function openItemDetail(itemId) {
         } else {
             statusBadge.className = 'badge status-active';
             statusBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Aktivní nabídka';
+        }
+    }
+
+    // Deleted Banner Notice in modal
+    const deletedBanner = document.getElementById('detail-deleted-banner');
+    if (deletedBanner) {
+        if (item.status === 'deleted') {
+            deletedBanner.style.display = 'flex';
+            deletedBanner.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-ban" style="font-size: 1.5rem; color: #dc2626;"></i>
+                    <div>
+                        <strong style="color: #991b1b; font-size: 1rem; display: block;">Tato nabídka už byla smazána</strong>
+                        <span style="color: #7f1d1d; font-size: 0.85rem;">Majitel tuto nabídku ukončil. Položka již není aktivní.</span>
+                    </div>
+                </div>
+                ${item.is_favorite ? `
+                    <button class="btn btn-sm btn-danger" style="margin-left: auto;" onclick="toggleFavoriteItem(${item.id}); openItemDetail(${item.id});">
+                        <i class="fa-solid fa-trash"></i> Odebrat z oblíbených
+                    </button>
+                ` : ''}
+            `;
+        } else {
+            deletedBanner.style.display = 'none';
         }
     }
 
@@ -672,22 +714,63 @@ function openItemDetail(itemId) {
         }
     }
 
-    // Contact buttons (E-mail & Phone - FR-02)
+    // Contact buttons (E-mail & Phone direct contact - Bez chatu)
     const contactsContainer = document.getElementById('detail-publisher-contacts');
+    const mobileActionBar = document.getElementById('detail-mobile-action-bar');
     if (contactsContainer) {
         contactsContainer.innerHTML = '';
-        if (item.publisher_email) {
+        if (item.publisher_phone) {
             contactsContainer.innerHTML += `
-                <a href="mailto:${escapeHtml(item.publisher_email)}?subject=Zájem o nabídku v komunitním trhu: ${encodeURIComponent(item.title)}" class="btn btn-sm btn-outline" title="Napsat soukromý e-mail">
-                    <i class="fa-solid fa-envelope"></i> E-mail
+                <a href="tel:${escapeHtml(item.publisher_phone)}" class="btn btn-primary btn-contact-call" title="Zavolat kolegovi">
+                    <i class="fa-solid fa-phone"></i>
+                    <span>Zavolat: <strong>${escapeHtml(item.publisher_phone)}</strong></span>
                 </a>
             `;
         }
-        if (item.publisher_phone) {
+        if (item.publisher_email) {
             contactsContainer.innerHTML += `
-                <a href="tel:${escapeHtml(item.publisher_phone)}" class="btn btn-sm btn-outline" title="Zavolat kolegovi">
-                    <i class="fa-solid fa-phone"></i> Volat
+                <a href="mailto:${escapeHtml(item.publisher_email)}?subject=${encodeURIComponent('Zájem o nabídku z SMC Tržiště: ' + item.title)}" class="btn btn-outline btn-contact-email" title="Napsat soukromý e-mail">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span>Napsat e-mail</span>
                 </a>
+            `;
+        }
+        if (!item.publisher_phone && !item.publisher_email) {
+            contactsContainer.innerHTML = `
+                <div class="no-contact-notice">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Osobní předání se uskuteční na místě: <strong>${escapeHtml(item.location)}</strong></span>
+                </div>
+            `;
+        }
+    }
+
+    // Mobile sticky bottom bar
+    if (mobileActionBar) {
+        if (item.status === 'deleted') {
+            mobileActionBar.innerHTML = `<div class="mobile-loc-pill"><i class="fa-solid fa-ban"></i> Nabídka byla smazána</div>`;
+        } else if (item.publisher_phone) {
+            mobileActionBar.innerHTML = `
+                <a href="tel:${escapeHtml(item.publisher_phone)}" class="btn btn-primary btn-lg btn-mobile-call">
+                    <i class="fa-solid fa-phone"></i> Zavolat (${escapeHtml(item.publisher_phone)})
+                </a>
+                ${item.publisher_email ? `
+                    <a href="mailto:${escapeHtml(item.publisher_email)}?subject=${encodeURIComponent('SMC Tržiště: ' + item.title)}" class="btn btn-outline btn-lg btn-mobile-email" title="Napsat e-mail">
+                        <i class="fa-solid fa-envelope"></i>
+                    </a>
+                ` : ''}
+            `;
+        } else if (item.publisher_email) {
+            mobileActionBar.innerHTML = `
+                <a href="mailto:${escapeHtml(item.publisher_email)}?subject=${encodeURIComponent('SMC Tržiště: ' + item.title)}" class="btn btn-primary btn-lg btn-mobile-call">
+                    <i class="fa-solid fa-envelope"></i> Napsat e-mail kolegovi
+                </a>
+            `;
+        } else {
+            mobileActionBar.innerHTML = `
+                <div class="mobile-loc-pill">
+                    <i class="fa-solid fa-location-dot"></i> Předání: ${escapeHtml(item.location)}
+                </div>
             `;
         }
     }
@@ -695,9 +778,6 @@ function openItemDetail(itemId) {
     // Description
     const descEl = document.getElementById('detail-desc');
     if (descEl) descEl.textContent = item.description;
-
-    // Private inquiries / chat
-    renderPrivateChat(item);
 
     // Owner Toolbar (FR-06, FR-10, FR-11)
     const ownerTools = document.getElementById('detail-owner-tools');
@@ -709,19 +789,43 @@ function openItemDetail(itemId) {
             const reserveBtn = document.getElementById('mark-reserved-btn');
             const activeBtn = document.getElementById('mark-active-btn');
             const completeBtn = document.getElementById('mark-complete-btn');
+            const endBtn = document.getElementById('end-item-btn');
+            const editBtn = document.getElementById('edit-item-btn');
+
+            if (editBtn) {
+                editBtn.style.display = (item.status === 'deleted') ? 'none' : 'inline-flex';
+            }
 
             if (item.status === 'active') {
                 if (reserveBtn) reserveBtn.style.display = 'inline-flex';
                 if (activeBtn) activeBtn.style.display = 'none';
                 if (completeBtn) completeBtn.style.display = 'inline-flex';
+                if (endBtn) {
+                    endBtn.style.display = 'inline-flex';
+                    endBtn.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Ukončit nabídku';
+                }
             } else if (item.status === 'reserved') {
                 if (reserveBtn) reserveBtn.style.display = 'none';
                 if (activeBtn) activeBtn.style.display = 'inline-flex';
+                if (activeBtn) activeBtn.innerHTML = '<i class="fa-solid fa-check"></i> Nastavit jako Aktivní';
                 if (completeBtn) completeBtn.style.display = 'inline-flex';
+                if (endBtn) {
+                    endBtn.style.display = 'inline-flex';
+                    endBtn.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Ukončit nabídku';
+                }
+            } else if (item.status === 'deleted') {
+                if (reserveBtn) reserveBtn.style.display = 'none';
+                if (activeBtn) {
+                    activeBtn.style.display = 'inline-flex';
+                    activeBtn.innerHTML = '<i class="fa-solid fa-arrow-rotate-left"></i> Znovu obnovit nabídku';
+                }
+                if (completeBtn) completeBtn.style.display = 'none';
+                if (endBtn) endBtn.style.display = 'none';
             } else {
                 if (reserveBtn) reserveBtn.style.display = 'none';
                 if (activeBtn) activeBtn.style.display = 'inline-flex';
                 if (completeBtn) completeBtn.style.display = 'none';
+                if (endBtn) endBtn.style.display = 'none';
             }
         } else {
             ownerTools.style.display = 'none';
@@ -740,256 +844,91 @@ function closeDetailModal() {
     if (modal) modal.classList.remove('active');
     document.body.style.overflow = '';
     state.currentItemDetail = null;
-    state.activeChatBuyerId = null;
+    state.detailGalleryImages = [];
+    state.detailGalleryIndex = 0;
+}
+
+function renderDetailGallery() {
+    const img = document.getElementById('detail-img');
+    const prevBtn = document.getElementById('gallery-prev-btn');
+    const nextBtn = document.getElementById('gallery-next-btn');
+    const counter = document.getElementById('detail-gallery-counter');
+    const strip = document.getElementById('detail-thumbnails-strip');
+
+    const total = state.detailGalleryImages ? state.detailGalleryImages.length : 0;
+    if (total === 0) {
+        if (img) img.src = './images/tools_case.jpg';
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+        if (counter) counter.style.display = 'none';
+        if (strip) strip.style.display = 'none';
+        return;
+    }
+
+    if (state.detailGalleryIndex >= total) {
+        state.detailGalleryIndex = 0;
+    } else if (state.detailGalleryIndex < 0) {
+        state.detailGalleryIndex = 0;
+    }
+
+    const currentSrc = state.detailGalleryImages[state.detailGalleryIndex] || './images/tools_case.jpg';
+    if (img) {
+        img.src = currentSrc;
+        img.onerror = () => { img.src = './images/tools_case.jpg'; };
+    }
+
+    if (total > 1) {
+        if (prevBtn) prevBtn.style.display = 'flex';
+        if (nextBtn) nextBtn.style.display = 'flex';
+        if (counter) {
+            counter.style.display = 'inline-block';
+            counter.textContent = `${state.detailGalleryIndex + 1} / ${total}`;
+        }
+        if (strip) {
+            strip.style.display = 'flex';
+            strip.innerHTML = state.detailGalleryImages.map((src, idx) => `
+                <div class="detail-thumb-item ${idx === state.detailGalleryIndex ? 'active' : ''}" onclick="selectDetailImage(${idx})" title="Fotka ${idx + 1}">
+                    <img src="${escapeHtml(src)}" alt="Miniatura ${idx + 1}" onerror="this.src='./images/tools_case.jpg'">
+                </div>
+            `).join('');
+
+            const activeThumb = strip.children[state.detailGalleryIndex];
+            if (activeThumb && typeof activeThumb.scrollIntoView === 'function') {
+                activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }
+    } else {
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+        if (counter) counter.style.display = 'none';
+        if (strip) strip.style.display = 'none';
+    }
+}
+
+function prevDetailImage() {
+    if (!state.detailGalleryImages || state.detailGalleryImages.length <= 1) return;
+    state.detailGalleryIndex = (state.detailGalleryIndex - 1 + state.detailGalleryImages.length) % state.detailGalleryImages.length;
+    renderDetailGallery();
+}
+
+function nextDetailImage() {
+    if (!state.detailGalleryImages || state.detailGalleryImages.length <= 1) return;
+    state.detailGalleryIndex = (state.detailGalleryIndex + 1) % state.detailGalleryImages.length;
+    renderDetailGallery();
+}
+
+function selectDetailImage(index) {
+    if (!state.detailGalleryImages || index < 0 || index >= state.detailGalleryImages.length) return;
+    state.detailGalleryIndex = index;
+    renderDetailGallery();
 }
 
 // ==========================================================================
-// PRIVATE IN-APP CHAT (FR-08 - SÚKROMNÉ DOHODY ZÁUJEMCOV A PREDAJCU)
+// PŘÍMÝ KONTAKT (Chat mezi prodávajícím a nakupujícím byl na přání odstraněn)
 // ==========================================================================
+// Komunikace probíhá přímo přes telefon a e-mail zaměstnance.
 
-function renderPrivateChat(item) {
-    const headerContainer = document.getElementById('inquiries-header-container');
-    const buyersPanel = document.getElementById('seller-buyers-panel');
-    const buyersTabsList = document.getElementById('buyers-tabs-list');
-    const activeChatInfoBar = document.getElementById('active-chat-info-bar');
-    const list = document.getElementById('detail-inquiries-list');
-    const form = document.getElementById('inquiry-form');
-    const input = document.getElementById('inquiry-input');
-    const submitBtn = document.getElementById('inquiry-submit-btn');
-    const countBadge = document.getElementById('detail-inquiry-count');
 
-    if (!state.currentUser) {
-        if (buyersPanel) buyersPanel.style.display = 'none';
-        if (activeChatInfoBar) activeChatInfoBar.style.display = 'none';
-        if (countBadge) countBadge.textContent = '0';
-        if (headerContainer) {
-            headerContainer.innerHTML = `<h4><i class="fa-solid fa-lock"></i> Soukromý chat k nabídce</h4>`;
-        }
-        if (list) {
-            list.innerHTML = `
-                <div class="chat-empty-state">
-                    <i class="fa-solid fa-lock" style="font-size: 1.8rem; color: var(--text-muted); margin-bottom: 8px;"></i>
-                    <p style="color: var(--text-secondary); margin-bottom: 10px;">Pro zobrazení soukromého chatu se prosím přihlaste.</p>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="showAuthModal()">Přihlásit se</button>
-                </div>
-            `;
-        }
-        if (form) form.style.display = 'none';
-        return;
-    }
-
-    if (form) form.style.display = 'block';
-
-    if (item.is_seller) {
-        // --- SELLER MODE ---
-        const buyerThreads = item.buyer_threads || [];
-        if (countBadge) countBadge.textContent = buyerThreads.length;
-
-        if (headerContainer) {
-            headerContainer.innerHTML = `
-                <div class="chat-header-flex">
-                    <div class="chat-header-title">
-                        <h4><i class="fa-solid fa-comments"></i> Zájemci o nabídku (${buyerThreads.length})</h4>
-                        <span class="seller-mode-pill"><i class="fa-solid fa-user-tag"></i> Vaše nabídka</span>
-                    </div>
-                    <p class="chat-subtitle">Zde vidíte kolegy, kteří reagovali. Každý má svůj vlastní oddělený soukromý chat.</p>
-                </div>
-            `;
-        }
-
-        if (buyerThreads.length === 0) {
-            if (buyersPanel) buyersPanel.style.display = 'none';
-            if (activeChatInfoBar) activeChatInfoBar.style.display = 'none';
-            if (list) {
-                list.innerHTML = `
-                    <div class="chat-empty-state">
-                        <i class="fa-regular fa-comment-dots" style="font-size: 2rem; color: var(--text-muted); margin-bottom: 8px;"></i>
-                        <strong style="display:block; color: var(--text-primary); margin-bottom: 4px;">Zatím žádný zájemce</strong>
-                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">
-                            O tuto nabídku zatím nikdo nenapsal. Jakmile kolega projeví zájem, jeho chat se zobrazí zde.
-                        </p>
-                    </div>
-                `;
-            }
-            if (form) form.style.display = 'none';
-            return;
-        }
-
-        if (buyersPanel) buyersPanel.style.display = 'block';
-
-        if (!state.activeChatBuyerId || !buyerThreads.some(t => t.buyer_id === state.activeChatBuyerId)) {
-            state.activeChatBuyerId = buyerThreads[0].buyer_id;
-        }
-
-        if (buyersTabsList) {
-            buyersTabsList.innerHTML = buyerThreads.map(b => {
-                const isSelected = b.buyer_id === state.activeChatBuyerId;
-                return `
-                    <button type="button" class="buyer-tab-btn ${isSelected ? 'active' : ''}" onclick="selectBuyerChat(${b.buyer_id})">
-                        <span class="buyer-tab-avatar">${escapeHtml(b.buyer_avatar)}</span>
-                        <div class="buyer-tab-text">
-                            <span class="buyer-tab-name">${escapeHtml(b.buyer_name)}</span>
-                            <span class="buyer-tab-dept">${escapeHtml(b.buyer_department)}</span>
-                        </div>
-                        <span class="buyer-msg-count" title="${b.messages.length} zpráv">${b.messages.length}</span>
-                    </button>
-                `;
-            }).join('');
-        }
-
-        const currentThread = buyerThreads.find(t => t.buyer_id === state.activeChatBuyerId) || buyerThreads[0];
-
-        if (activeChatInfoBar) {
-            activeChatInfoBar.style.display = 'flex';
-            activeChatInfoBar.innerHTML = `
-                <div class="active-chat-meta">
-                    <span class="active-chat-indicator"><i class="fa-solid fa-circle"></i></span>
-                    <span>Chat se zájemcem: <strong>${escapeHtml(currentThread.buyer_name)}</strong> <small>(${escapeHtml(currentThread.buyer_department)})</small></span>
-                </div>
-                <div class="active-chat-contacts">
-                    ${currentThread.buyer_email ? `<a href="mailto:${escapeHtml(currentThread.buyer_email)}" class="chat-contact-btn" title="E-mail: ${escapeHtml(currentThread.buyer_email)}"><i class="fa-solid fa-envelope"></i> E-mail</a>` : ''}
-                    ${currentThread.buyer_phone ? `<a href="tel:${escapeHtml(currentThread.buyer_phone)}" class="chat-contact-btn" title="Telefon: ${escapeHtml(currentThread.buyer_phone)}"><i class="fa-solid fa-phone"></i> Volat</a>` : ''}
-                </div>
-            `;
-        }
-
-        if (list) {
-            renderMessageStream(currentThread.messages, item, list);
-        }
-
-        if (input) input.placeholder = `Odpovědět zájemci (${currentThread.buyer_name})...`;
-        if (submitBtn) submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Odpovědět`;
-
-    } else {
-        // --- BUYER MODE ---
-        if (buyersPanel) buyersPanel.style.display = 'none';
-        if (activeChatInfoBar) activeChatInfoBar.style.display = 'none';
-
-        const myMessages = item.my_thread || [];
-        if (countBadge) countBadge.textContent = myMessages.length;
-
-        if (headerContainer) {
-            headerContainer.innerHTML = `
-                <div class="chat-header-flex">
-                    <div class="chat-header-title">
-                        <h4><i class="fa-solid fa-lock" style="color: var(--smc-blue-primary);"></i> Soukromý chat s kolegou</h4>
-                        <span class="private-badge"><i class="fa-solid fa-shield-halved"></i> Pouze vy a ${escapeHtml(item.publisher_name)}</span>
-                    </div>
-                    <p class="chat-subtitle">Tento chat je soukromý. Vaše zprávy vidí výhradně <strong>${escapeHtml(item.publisher_name)}</strong> (${escapeHtml(item.publisher_department)}). Ostatní kolegové konverzaci nevidí.</p>
-                </div>
-            `;
-        }
-
-        if (myMessages.length === 0) {
-            if (list) {
-                list.innerHTML = `
-                    <div class="chat-empty-state">
-                        <i class="fa-regular fa-paper-plane" style="font-size: 2rem; color: var(--text-muted); margin-bottom: 8px;"></i>
-                        <strong style="display:block; color: var(--text-primary); margin-bottom: 4px;">Máte zájem o tuto nabídku?</strong>
-                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">
-                            Napište kolegovi soukromou zprávu. Domluvte se na bezpečném místě předání a čase výhradně <strong>mimo pracovní dobu</strong>.
-                        </p>
-                    </div>
-                `;
-            }
-        } else {
-            if (list) {
-                renderMessageStream(myMessages, item, list);
-            }
-        }
-
-        if (input) input.placeholder = `Napište soukromou zprávu pro ${item.publisher_name}...`;
-        if (submitBtn) submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Odeslat`;
-    }
-}
-
-function renderMessageStream(messages, item, container) {
-    if (!messages || messages.length === 0) {
-        container.innerHTML = `
-            <div class="chat-empty-state" style="padding: 14px;">
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Zatím žádné zprávy v této konverzaci.</p>
-            </div>
-        `;
-        return;
-    }
-
-    container.innerHTML = messages.map(msg => {
-        const isMine = state.currentUser && msg.sender_id === state.currentUser.id;
-        const senderTag = msg.is_from_seller ? ' <span class="chat-seller-tag">Autor nabídky</span>' : '';
-
-        if (isMine) {
-            return `
-                <div class="chat-message outgoing">
-                    <div class="chat-msg-body">
-                        <div class="chat-msg-meta">
-                            <span class="chat-msg-time">${formatDate(msg.created_at)}</span>
-                            <span class="chat-msg-author">Vy</span>
-                        </div>
-                        <div class="chat-bubble outgoing-bubble">${escapeHtml(msg.message)}</div>
-                    </div>
-                </div>
-            `;
-        } else {
-            return `
-                <div class="chat-message incoming">
-                    <div class="chat-msg-avatar">${escapeHtml(msg.sender_avatar || 'KO')}</div>
-                    <div class="chat-msg-body">
-                        <div class="chat-msg-meta">
-                            <span class="chat-msg-author">${escapeHtml(msg.sender_name)}${senderTag}</span>
-                            <span class="chat-msg-time">${formatDate(msg.created_at)}</span>
-                        </div>
-                        <div class="chat-bubble incoming-bubble">${escapeHtml(msg.message)}</div>
-                    </div>
-                </div>
-            `;
-        }
-    }).join('');
-
-    container.scrollTop = container.scrollHeight;
-}
-
-function selectBuyerChat(buyerId) {
-    state.activeChatBuyerId = Number(buyerId);
-    if (state.currentItemDetail) {
-        renderPrivateChat(state.currentItemDetail);
-    }
-}
-
-function submitInquiry(e) {
-    e.preventDefault();
-    if (!state.currentItemDetail || !state.currentUser) return;
-
-    const input = document.getElementById('inquiry-input');
-    const message = input.value.trim();
-    if (!message) return;
-
-    const isSeller = state.currentItemDetail.is_seller;
-    const targetBuyerId = isSeller ? state.activeChatBuyerId : state.currentUser.id;
-
-    if (isSeller && !targetBuyerId) {
-        showToast('Není vybrán žádný zájemce, kterému chcete odpovědět.', 'error');
-        return;
-    }
-
-    const result = window.smcDb.addInquiry(
-        state.currentItemDetail.id,
-        message,
-        state.currentUser.id,
-        targetBuyerId
-    );
-
-    if (result.success) {
-        input.value = '';
-        showToast('Zpráva byla odeslána!', 'success');
-
-        const updatedItem = window.smcDb.getItemById(state.currentItemDetail.id, state.currentUser.id);
-        state.currentItemDetail = updatedItem;
-        renderPrivateChat(updatedItem);
-        loadItems();
-    } else {
-        showToast(result.error || 'Chyba při odesílání zprávy.', 'error');
-    }
-}
 
 function changeCurrentItemStatus(status) {
     if (!state.currentItemDetail || !state.currentUser) return;
@@ -1005,18 +944,45 @@ function changeCurrentItemStatus(status) {
     }
 }
 
-function deleteCurrentItem() {
+function endCurrentItem() {
     if (!state.currentItemDetail || !state.currentUser) return;
-    if (!confirm(`Opravdu chcete natrvalo smazat nabídku "${state.currentItemDetail.title}"?`)) return;
+    const title = state.currentItemDetail.title;
+    if (!confirm(`Opravdu chcete nabídku "${title}" ukončit?\n\nNabídka bude smazána a nebude se již zobrazovat v komunitním katalogu. Uživatelům, kteří ji mají v oblíbených, se zobrazí, že nabídka již byla smazána.`)) return;
 
-    const result = window.smcDb.deleteItem(state.currentItemDetail.id, state.currentUser.id);
+    const result = window.smcDb.endItem(state.currentItemDetail.id, state.currentUser.id);
     if (result.success) {
-        showToast(result.message, 'success');
+        showToast('Nabídka byla úspěšně ukončena a smazána.', 'success');
         closeDetailModal();
         loadItems();
         loadStats();
+        if (document.getElementById('user-drawer')?.classList.contains('active')) {
+            loadDrawerMyItems();
+            loadDrawerFavorites();
+        }
     } else {
-        showToast(result.error || 'Chyba při mazání nabídky.', 'error');
+        showToast(result.error || 'Chyba při ukončování nabídky.', 'error');
+    }
+}
+
+function deleteCurrentItem() {
+    endCurrentItem();
+}
+
+function quickEndItem(itemId) {
+    if (!state.currentUser) return;
+    const item = window.smcDb.getItemById(itemId, state.currentUser.id);
+    if (!item) return;
+    if (!confirm(`Opravdu chcete nabídku "${item.title}" ukončit?\n\nNabídka bude smazána z hlavního katalogu. Uživatelům s touto nabídkou v oblíbených se zobrazí, že nabídka již byla smazána.`)) return;
+
+    const result = window.smcDb.endItem(itemId, state.currentUser.id);
+    if (result.success) {
+        showToast('Nabídka byla úspěšně ukončena.', 'success');
+        loadItems();
+        loadStats();
+        loadDrawerMyItems();
+        loadDrawerFavorites();
+    } else {
+        showToast(result.error || 'Chyba při ukončování nabídky.', 'error');
     }
 }
 
@@ -1032,17 +998,14 @@ function openCompleteTransactionModal() {
 
     const buyerSelect = document.getElementById('completion-buyer-select');
     if (buyerSelect) {
-        buyerSelect.innerHTML = '<option value="">Vyberte zájemce z chatu (nebo nechte prázdné)...</option>';
-        const threads = state.currentItemDetail.buyer_threads || [];
-        threads.forEach(t => {
+        buyerSelect.innerHTML = '<option value="">Vyberte kolegu kupujícího (nebo nechte prázdné)...</option>';
+        const users = (window.smcDb && window.smcDb.getUsers) ? window.smcDb.getUsers().filter(u => u.id !== state.currentUser.id) : [];
+        users.forEach(u => {
             const opt = document.createElement('option');
-            opt.value = t.buyer_id;
-            opt.textContent = `${t.buyer_name} (${t.buyer_department || 'Kolega'})`;
+            opt.value = u.id;
+            opt.textContent = `${u.name} (${u.department || 'Kolega'})`;
             buyerSelect.appendChild(opt);
         });
-        if (state.activeChatBuyerId) {
-            buyerSelect.value = state.activeChatBuyerId;
-        }
     }
 
     // Set default outcome based on item price_type
@@ -1412,9 +1375,15 @@ function loadDrawerMyItems() {
                         <span class="card-status-tag status-${item.status}">${item.status === 'active' ? 'Aktivní' : (item.status === 'reserved' ? 'Rezervováno' : 'Dokončeno')}</span>
                         <span>${escapeHtml(offerInfo.text)} • ${escapeHtml(offerInfo.priceText)}</span>
                     </div>
-                    <div class="drawer-item-actions">
+                    <div class="drawer-item-actions" style="margin-top: 6px; display: flex; gap: 6px;">
+                        <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); closeUserDrawer(); openEditItemModal(${item.id});">
+                            <i class="fa-solid fa-pen-to-square"></i> Upravit
+                        </button>
                         <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); closeUserDrawer(); openItemDetail(${item.id});">
-                            <i class="fa-solid fa-pen-to-square"></i> Spravovat nabídku
+                            <i class="fa-solid fa-eye"></i> Detail
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); quickEndItem(${item.id});">
+                            <i class="fa-solid fa-circle-xmark"></i> Ukončit nabídku
                         </button>
                     </div>
                 </div>
@@ -1440,6 +1409,26 @@ function loadDrawerFavorites() {
     }
 
     container.innerHTML = items.map(item => {
+        const isDeleted = item.status === 'deleted';
+        if (isDeleted) {
+            return `
+                <div class="drawer-item-row is-deleted" style="background: #fff1f2; border: 1px dashed #fca5a5; opacity: 0.95;" onclick="closeUserDrawer(); openItemDetail(${item.id});">
+                    <img src="${escapeHtml(item.image_url)}" class="drawer-item-thumb" alt="${escapeHtml(item.title)}" onerror="this.src='./images/tools_case.jpg'" style="filter: grayscale(80%);">
+                    <div class="drawer-item-info">
+                        <div class="drawer-item-title" style="text-decoration: line-through; color: var(--text-muted);">${escapeHtml(item.title)}</div>
+                        <div class="drawer-item-meta" style="margin-top: 4px;">
+                            <span class="badge" style="background: #dc2626; color: #fff; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+                                <i class="fa-solid fa-ban"></i> Nabídka už byla smazána
+                            </span>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-danger-outline" title="Odebrat z oblíbených" onclick="event.stopPropagation(); removeFavoriteAndRefreshDrawer(${item.id});">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `;
+        }
+
         const offerInfo = getOfferBadgeInfo(item.price_type, item.price);
         return `
             <div class="drawer-item-row" onclick="closeUserDrawer(); openItemDetail(${item.id});">
@@ -1537,14 +1526,12 @@ function openNewItemModal() {
     const form = document.getElementById('new-item-form');
     if (form) form.reset();
 
+    state.newPhotosList = [];
     state.uploadedImageDataUrl = null;
     const selectedPreset = document.getElementById('selected-preset-image');
     if (selectedPreset) selectedPreset.value = '';
 
-    const chosenName = document.getElementById('file-chosen-name');
-    if (chosenName) chosenName.style.display = 'none';
-
-    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
+    renderNewPhotosGrid();
     togglePriceInput('sell');
 
     if (state.currentUser && (state.currentUser.username === 'smc' || state.currentUser.role === 'official_smc')) {
@@ -1557,6 +1544,87 @@ function closeNewItemModal() {
     const modal = document.getElementById('new-item-modal');
     if (modal) modal.classList.remove('active');
     document.body.style.overflow = '';
+    state.newPhotosList = [];
+}
+
+function renderNewPhotosGrid() {
+    const grid = document.getElementById('new-photos-preview-grid');
+    const badge = document.getElementById('new-photos-count-badge');
+    const remainingEl = document.getElementById('new-photos-remaining');
+    const dropzone = document.getElementById('dropzone');
+
+    const count = state.newPhotosList ? state.newPhotosList.length : 0;
+    const remaining = Math.max(0, 15 - count);
+
+    if (badge) badge.textContent = `${count} / 15`;
+    if (remainingEl) remainingEl.textContent = remaining;
+
+    if (grid) {
+        if (count === 0) {
+            grid.style.display = 'none';
+            grid.innerHTML = '';
+        } else {
+            grid.style.display = 'grid';
+            grid.innerHTML = state.newPhotosList.map((imgSrc, idx) => `
+                <div class="photo-preview-item" title="Fotka ${idx + 1}${idx === 0 ? ' (Hlavní náhled)' : ''}">
+                    ${idx === 0 ? '<span class="photo-main-badge">Hlavní</span>' : ''}
+                    <img src="${escapeHtml(imgSrc)}" alt="Náhled ${idx + 1}" onerror="this.src='./images/tools_case.jpg'">
+                    <button type="button" class="photo-delete-btn" onclick="removePhotoFromNew(${idx})" title="Smazat tuto fotografii">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+    }
+
+    if (dropzone) {
+        dropzone.style.display = (count >= 15) ? 'none' : 'block';
+    }
+}
+
+function handleNewImagesUpload(input) {
+    if (!state.newPhotosList) state.newPhotosList = [];
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
+
+    const remainingSlots = 15 - state.newPhotosList.length;
+    if (remainingSlots <= 0) {
+        showToast('Můžete nahrát maximálně 15 fotografií.', 'warning');
+        input.value = '';
+        return;
+    }
+
+    const filesToProcess = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+        showToast(`Vybráno ${files.length} fotografií, ale volných míst je jen ${remainingSlots}. Nahráno prvních ${remainingSlots}.`, 'warning');
+    }
+
+    showToast(`Optimalizuji ${filesToProcess.length} fotografií...`, 'info');
+
+    Promise.all(filesToProcess.map(file => compressImageFileToBase64(file, 800, 600, 0.8)))
+        .then(base64Array => {
+            state.newPhotosList.push(...base64Array);
+            if (state.newPhotosList.length > 0) {
+                state.uploadedImageDataUrl = state.newPhotosList[0];
+            }
+            renderNewPhotosGrid();
+            showToast(`Úspěšně přidáno ${base64Array.length} fotografií.`, 'success');
+        })
+        .catch(err => {
+            console.error('Chyba při kompresi fotografií:', err);
+            showToast('Chyba při zpracování fotografií.', 'error');
+        })
+        .finally(() => {
+            input.value = '';
+        });
+}
+
+function removePhotoFromNew(index) {
+    if (!state.newPhotosList || index < 0 || index >= state.newPhotosList.length) return;
+    state.newPhotosList.splice(index, 1);
+    state.uploadedImageDataUrl = state.newPhotosList[0] || null;
+    renderNewPhotosGrid();
+    showToast('Fotografie byla odstraněna.', 'info');
 }
 
 function togglePriceInput(priceType) {
@@ -1579,8 +1647,8 @@ function selectPresetImage(presetKey, buttonElement) {
     document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
     if (buttonElement) buttonElement.classList.add('selected');
 
-    const base64Code = (window.EMBEDDED_IMAGES && window.EMBEDDED_IMAGES[presetKey]) 
-        ? window.EMBEDDED_IMAGES[presetKey] 
+    const base64Code = (window.EMBEDDED_IMAGES && window.EMBEDDED_IMAGES[presetKey])
+        ? window.EMBEDDED_IMAGES[presetKey]
         : presetKey;
 
     state.uploadedImageDataUrl = base64Code;
@@ -1589,38 +1657,7 @@ function selectPresetImage(presetKey, buttonElement) {
 }
 
 function handleImageFileUpload(input) {
-    const file = input.files[0];
-    const nameLabel = document.getElementById('file-chosen-name');
-
-    if (file) {
-        if (nameLabel) {
-            nameLabel.textContent = `Vybráno: ${file.name} (optimalizuji fotografii...)`;
-            nameLabel.style.display = 'inline-block';
-        }
-
-        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
-        const presetHidden = document.getElementById('selected-preset-image');
-        if (presetHidden) presetHidden.value = '';
-
-        compressImageFileToBase64(file, 640, 480, 0.78)
-            .then(base64Data => {
-                state.uploadedImageDataUrl = base64Data;
-                if (nameLabel) {
-                    nameLabel.textContent = `Připraveno: ${file.name} (~${Math.round(base64Data.length / 1024)} KB)`;
-                }
-            })
-            .catch(err => {
-                console.error('Chyba při zpracování obrázku:', err);
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    state.uploadedImageDataUrl = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-    } else {
-        if (nameLabel) nameLabel.style.display = 'none';
-        state.uploadedImageDataUrl = null;
-    }
+    handleNewImagesUpload(input);
 }
 
 function compressImageFileToBase64(file, maxWidth = 640, maxHeight = 480, quality = 0.8) {
@@ -1675,14 +1712,17 @@ function submitNewItem(e) {
     const condition = formData.get('condition') || 'like_new';
     const location = formData.get('location') || '';
 
-    // Determine Base64 image
-    let imageBase64 = state.uploadedImageDataUrl;
-    if (!imageBase64) {
+    // Determine images list (up to 15)
+    let images = (state.newPhotosList && state.newPhotosList.length > 0)
+        ? [...state.newPhotosList]
+        : (state.uploadedImageDataUrl ? [state.uploadedImageDataUrl] : []);
+
+    if (images.length === 0) {
         const presetKey = formData.get('preset_image');
         if (presetKey && window.EMBEDDED_IMAGES && window.EMBEDDED_IMAGES[presetKey]) {
-            imageBase64 = window.EMBEDDED_IMAGES[presetKey];
+            images = [window.EMBEDDED_IMAGES[presetKey]];
         } else {
-            imageBase64 = window.EMBEDDED_IMAGES ? window.EMBEDDED_IMAGES.tools_case : './images/tools_case.jpg';
+            images = [window.EMBEDDED_IMAGES ? window.EMBEDDED_IMAGES.tools_case : './images/tools_case.jpg'];
         }
     }
 
@@ -1694,7 +1734,8 @@ function submitNewItem(e) {
         price,
         condition,
         location,
-        image_base64: imageBase64
+        images: images,
+        image_base64: images[0]
     }, state.currentUser.id);
 
     if (result.success) {
@@ -1712,6 +1753,220 @@ function submitNewItem(e) {
 
 function priceTypeIsFreeOrSwap(priceType) {
     return priceType === 'free' || priceType === 'swap' || priceType === 'buy';
+}
+
+// ==========================================================================
+// EDIT ITEM MODAL (ÚPRAVA EXISTUJÍCÍ NABÍDKY MAJITELEM)
+// ==========================================================================
+
+function openEditItemModal(itemId) {
+    if (!state.currentUser) {
+        showToast('Pro úpravu nabídky se musíte přihlásit.', 'error');
+        return;
+    }
+
+    const item = window.smcDb.getItemById(itemId, state.currentUser.id);
+    if (!item) {
+        showToast('Nabídka nebyla nalezena.', 'error');
+        return;
+    }
+
+    const isOwner = item.user_id === state.currentUser.id;
+    const isMod = state.currentUser.role === 'moderator' || state.currentUser.role === 'admin' || state.currentUser.role === 'official_smc';
+    if (!isOwner && !isMod) {
+        showToast('Nemáte oprávnění upravovat tuto nabídku.', 'error');
+        return;
+    }
+
+    state.editingItemId = item.id;
+    state.editPhotosList = (Array.isArray(item.images) && item.images.length > 0)
+        ? [...item.images]
+        : (item.image_url ? [item.image_url] : []);
+
+    const modal = document.getElementById('edit-item-modal');
+    if (!modal) return;
+
+    // Pre-fill form fields
+    const form = document.getElementById('edit-item-form');
+    if (form) form.reset();
+
+    const idInput = document.getElementById('edit-item-id');
+    if (idInput) idInput.value = item.id;
+
+    const titleInput = document.getElementById('edit-title');
+    if (titleInput) titleInput.value = item.title || '';
+
+    const typeSelect = document.getElementById('edit-price-type');
+    if (typeSelect) typeSelect.value = item.price_type || 'sell';
+
+    const catSelect = document.getElementById('edit-category');
+    if (catSelect) catSelect.value = item.category_id || 'home_garden';
+
+    const condSelect = document.getElementById('edit-condition');
+    if (condSelect) condSelect.value = item.condition || 'like_new';
+
+    const priceInput = document.getElementById('edit-price');
+    if (priceInput) priceInput.value = item.price || 0;
+
+    const locInput = document.getElementById('edit-location');
+    if (locInput) locInput.value = item.location || '';
+
+    const descInput = document.getElementById('edit-description');
+    if (descInput) descInput.value = item.description || '';
+
+    renderEditPhotosGrid();
+    toggleEditPriceInput(item.price_type || 'sell');
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeEditItemModal() {
+    const modal = document.getElementById('edit-item-modal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+    state.editingItemId = null;
+    state.editPhotosList = [];
+}
+
+function toggleEditPriceInput(priceType) {
+    const priceGroup = document.getElementById('edit-price-amount-group');
+    if (!priceGroup) return;
+
+    if (priceType === 'sell' || priceType === 'lend' || priceType === 'rent') {
+        priceGroup.style.display = 'block';
+    } else {
+        priceGroup.style.display = 'none';
+    }
+}
+
+function renderEditPhotosGrid() {
+    const grid = document.getElementById('edit-photos-preview-grid');
+    const badge = document.getElementById('edit-photos-count-badge');
+    const remainingEl = document.getElementById('edit-photos-remaining');
+    const dropzone = document.getElementById('edit-dropzone');
+
+    const count = state.editPhotosList ? state.editPhotosList.length : 0;
+    const remaining = Math.max(0, 15 - count);
+
+    if (badge) badge.textContent = `${count} / 15`;
+    if (remainingEl) remainingEl.textContent = remaining;
+
+    if (grid) {
+        if (count === 0) {
+            grid.innerHTML = '<p style="grid-column: 1 / -1; color: var(--text-muted); font-size: 0.85rem; font-style: italic; margin: 4px 0;">Žádná fotografie (nabídka použije výchozí ilustraci). Nahrajte novou fotografii níže.</p>';
+        } else {
+            grid.innerHTML = state.editPhotosList.map((imgSrc, idx) => `
+                <div class="photo-preview-item" title="Fotka ${idx + 1}${idx === 0 ? ' (Hlavní náhled)' : ''}">
+                    ${idx === 0 ? '<span class="photo-main-badge">Hlavní</span>' : ''}
+                    <img src="${escapeHtml(imgSrc)}" alt="Foto ${idx + 1}" onerror="this.src='./images/tools_case.jpg'">
+                    <button type="button" class="photo-delete-btn" onclick="removePhotoFromEdit(${idx})" title="Smazat tuto konkrétní fotografii">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+    }
+
+    if (dropzone) {
+        dropzone.style.display = (count >= 15) ? 'none' : 'block';
+    }
+}
+
+function removePhotoFromEdit(index) {
+    if (!state.editPhotosList || index < 0 || index >= state.editPhotosList.length) return;
+    state.editPhotosList.splice(index, 1);
+    renderEditPhotosGrid();
+    showToast('Fotografie byla smazána. Klikněte na Uložit změny pro potvrzení.', 'info');
+}
+
+function handleEditImagesUpload(input) {
+    if (!state.editPhotosList) state.editPhotosList = [];
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
+
+    const remainingSlots = 15 - state.editPhotosList.length;
+    if (remainingSlots <= 0) {
+        showToast('Dosažen maximální limit 15 fotografií na inzerát.', 'warning');
+        input.value = '';
+        return;
+    }
+
+    const filesToProcess = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+        showToast(`Vybráno ${files.length} fotografií, ale volných míst je jen ${remainingSlots}. Nahráno prvních ${remainingSlots}.`, 'warning');
+    }
+
+    showToast(`Optimalizuji ${filesToProcess.length} fotografií...`, 'info');
+
+    Promise.all(filesToProcess.map(file => compressImageFileToBase64(file, 800, 600, 0.8)))
+        .then(base64Array => {
+            state.editPhotosList.push(...base64Array);
+            renderEditPhotosGrid();
+            showToast(`Přidáno ${base64Array.length} nových fotografií.`, 'success');
+        })
+        .catch(err => {
+            console.error('Chyba při zpracování fotografií:', err);
+            showToast('Chyba při zpracování fotografií.', 'error');
+        })
+        .finally(() => {
+            input.value = '';
+        });
+}
+
+function handleEditImageFileUpload(input) {
+    handleEditImagesUpload(input);
+}
+
+function submitEditItem(e) {
+    e.preventDefault();
+    if (!state.currentUser) return;
+
+    const form = document.getElementById('edit-item-form');
+    const formData = new FormData(form);
+    const itemId = Number(formData.get('item_id') || state.editingItemId);
+
+    if (!itemId) {
+        showToast('Identifikátor nabídky chybí.', 'error');
+        return;
+    }
+
+    const title = formData.get('title') || '';
+    const description = formData.get('description') || '';
+    const category_id = formData.get('category_id') || 'home_garden';
+    const price_type = formData.get('price_type') || 'sell';
+    const price = (priceTypeIsFreeOrSwap(price_type)) ? 0 : (formData.get('price') || 0);
+    const condition = formData.get('condition') || 'like_new';
+    const location = formData.get('location') || '';
+
+    const updatePayload = {
+        title,
+        description,
+        category_id,
+        price_type,
+        price,
+        condition,
+        location,
+        images: state.editPhotosList || []
+    };
+
+    const result = window.smcDb.updateItem(itemId, updatePayload, state.currentUser.id);
+
+    if (result.success) {
+        showToast(result.message, 'success');
+        closeEditItemModal();
+        loadItems();
+        loadStats();
+        if (state.currentItemDetail && state.currentItemDetail.id === itemId) {
+            openItemDetail(itemId);
+        }
+        if (document.getElementById('user-drawer')?.classList.contains('active')) {
+            loadDrawerMyItems();
+            loadDrawerFavorites();
+        }
+    } else {
+        showToast(result.error || 'Chyba při ukládání úprav nabídky.', 'error');
+    }
 }
 
 // ==========================================================================
@@ -1869,8 +2124,21 @@ function initKeyboardShortcuts() {
                 searchInput.select();
             }
         }
-        // Keyboard Arrow Navigation for User Management Modal ("budu jezdit šipkama")
+        // Keyboard Arrow Navigation for Detail Gallery & User Management
         if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            const detailModal = document.getElementById('detail-modal');
+            if (detailModal && detailModal.classList.contains('active')) {
+                if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                    e.preventDefault();
+                    if (e.key === 'ArrowLeft') {
+                        prevDetailImage();
+                    } else if (e.key === 'ArrowRight') {
+                        nextDetailImage();
+                    }
+                    return;
+                }
+            }
+
             const userManageModal = document.getElementById('user-management-modal');
             if (userManageModal && userManageModal.classList.contains('active')) {
                 if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
@@ -1885,6 +2153,7 @@ function initKeyboardShortcuts() {
         }
         if (e.key === 'Escape') {
             const detailModal = document.getElementById('detail-modal');
+            const editModal = document.getElementById('edit-item-modal');
             const newItemModal = document.getElementById('new-item-modal');
             const reportModal = document.getElementById('report-modal');
             const guidelinesModal = document.getElementById('guidelines-modal');
@@ -1893,6 +2162,7 @@ function initKeyboardShortcuts() {
             const drawer = document.getElementById('user-drawer');
 
             if (detailModal && detailModal.classList.contains('active')) closeDetailModal();
+            if (editModal && editModal.classList.contains('active')) closeEditItemModal();
             if (newItemModal && newItemModal.classList.contains('active')) closeNewItemModal();
             if (reportModal && reportModal.classList.contains('active')) closeReportModal();
             if (guidelinesModal && guidelinesModal.classList.contains('active')) closeGuidelinesModal();
@@ -1935,7 +2205,7 @@ function showToast(message, type = 'info') {
 
 function formatPrice(amount) {
     if (!amount || Number(amount) === 0) return 'Zdarma za odvoz';
-    return `${Number(amount)} €`;
+    return `${Number(amount)} Kč`;
 }
 
 function formatCondition(condition) {
@@ -2199,7 +2469,7 @@ function renderUserManagementList() {
                 <td>
                     <div class="user-cell-wrap">
                         <div class="user-table-avatar ${u.role === 'admin' ? 'is-admin' : ''} ${u.is_official ? 'is-smc' : ''}">
-                            ${u.is_official ? '<i class="fa-solid fa-building"></i>' : (u.avatar_text || u.name.substring(0,2).toUpperCase())}
+                            ${u.is_official ? '<i class="fa-solid fa-building"></i>' : (u.avatar_text || u.name.substring(0, 2).toUpperCase())}
                         </div>
                         <div>
                             <div class="user-name-title">

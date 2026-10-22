@@ -1,0 +1,26 @@
+# Ignorovaný backend / API skript s citlivými přístupy a konfigurací
+marketPlaceAPI.php
+
+# Environment variables a privátní konfigurace
+.env
+.env.local
+.env.*.local
+*.config.php
+config.local.php
+
+# IDE a vývojářské nástroje
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Systémové soubory OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logy a cache
+*.log
+tmp/
+temp/
+cache/
