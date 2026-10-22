@@ -19,7 +19,94 @@ const EMBEDDED_IMAGES = {
 
 class SMCLocalDatabase {
     constructor() {
+        this.apiUrl = 'https://podsednikt.endora.site/marketPlaceAPI.php';
+        this.useApi = true;
         this.data = this.loadDatabase();
+        this.syncWithRemoteApi();
+    }
+
+    async sendApiRequest(action, payload = {}, method = 'POST') {
+        if (!this.useApi) return null;
+        try {
+            const url = `${this.apiUrl}?action=${encodeURIComponent(action)}`;
+            const options = {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                mode: 'cors'
+            };
+            if (method === 'POST') {
+                options.body = JSON.stringify(payload);
+            }
+            const res = await fetch(url, options);
+            if (!res.ok) {
+                console.warn(`[SMC API] ${action} vrátil status:`, res.status);
+                return null;
+            }
+            return await res.json();
+        } catch (e) {
+            console.warn(`[SMC API] Chyba při volání ${action}:`, e);
+            return null;
+        }
+    }
+
+    async syncWithRemoteApi() {
+        if (!this.useApi) return;
+        try {
+            const res = await fetch(`${this.apiUrl}?action=getItems`, { method: 'GET', mode: 'cors' });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data && data.success && Array.isArray(data.items) && data.items.length > 0) {
+                const mappedItems = data.items.map(item => {
+                    let images = [];
+                    if (Array.isArray(item.images) && item.images.length > 0) {
+                        images = item.images;
+                    } else if (item.image_url) {
+                        images = [item.image_url];
+                    } else {
+                        images = ['./images/tools_case.jpg'];
+                    }
+
+                    return {
+                        id: Number(item.id),
+                        title: item.title,
+                        description: item.description,
+                        category_id: item.category_id,
+                        price: Number(item.price) || 0,
+                        price_type: item.price_type || 'sell',
+                        condition: item.condition_state || 'like_new',
+                        location: item.location || 'Areál závodu',
+                        images: images,
+                        image_base64: images[0],
+                        image_url: images[0],
+                        user_id: Number(item.user_id),
+                        status: item.status || 'active',
+                        created_at: item.created_at,
+                        views_count: Number(item.views_count) || 0,
+                        publisher_name: item.publisher_name,
+                        publisher_phone: item.publisher_phone,
+                        publisher_email: item.publisher_email,
+                        publisher_department: item.publisher_department,
+                        publisher_avatar: item.publisher_avatar,
+                        publisher_rating: Number(item.publisher_rating) || 5.0,
+                        is_favorite: Boolean(item.is_favorite)
+                    };
+                });
+
+                this.data.items = mappedItems;
+                this.saveDatabase();
+
+                window.dispatchEvent(new CustomEvent('smc_api_synced', { detail: { count: mappedItems.length } }));
+                if (typeof window.loadItems === 'function') {
+                    window.loadItems();
+                }
+                if (typeof window.loadStats === 'function') {
+                    window.loadStats();
+                }
+                console.log(`[SMC API] Úspěšně synchronizováno ${mappedItems.length} inzerátů z MySQL na Endora.`);
+            }
+        } catch (err) {
+            console.warn('[SMC API] Vzdálené API nedostupné, běžíme v offline režimu:', err);
+        }
     }
 
     loadDatabase() {
@@ -1577,6 +1664,24 @@ class SMCLocalDatabase {
         this.addAuditLog(currentUserId, 'item_create', 'item', newItem.id, `Přidání nabídky: ${newItem.title}`);
         this.saveDatabase();
 
+        // Odeslání do vzdálené MySQL databáze přes API
+        this.sendApiRequest('createItem', {
+            user_id: currentUserId,
+            category_id: newItem.category_id,
+            title: newItem.title,
+            description: newItem.description,
+            price: newItem.price,
+            price_type: newItem.price_type,
+            condition: newItem.condition,
+            location: newItem.location,
+            images: itemData.images || (itemData.image_base64 ? [itemData.image_base64] : [])
+        }).then(apiRes => {
+            if (apiRes && apiRes.success && apiRes.item_id) {
+                newItem.id = Number(apiRes.item_id);
+                this.saveDatabase();
+            }
+        });
+
         return { success: true, item_id: newItem.id, message: 'Nabídka byla úspěšně zveřejněna v komunitě!' };
     }
 
@@ -1608,15 +1713,34 @@ class SMCLocalDatabase {
             item.price = 0;
         }
 
-        if (itemData.image_base64) {
+        if (itemData.images && Array.isArray(itemData.images)) {
+            item.images = itemData.images;
+            item.image_base64 = itemData.images[0] || '';
+            item.image_url = itemData.images[0] || '';
+        } else if (itemData.image_base64) {
             item.image_base64 = itemData.image_base64;
             item.image_url = itemData.image_base64;
+            item.images = [itemData.image_base64];
         }
 
         item.updated_at = new Date().toISOString();
 
         this.addAuditLog(currentUserId, 'item_update', 'item', item.id, `Úprava nabídky: ${item.title}`);
         this.saveDatabase();
+
+        // Odeslání do vzdálené MySQL databáze přes API
+        this.sendApiRequest('updateItem', {
+            id: item.id,
+            user_id: currentUserId,
+            title: item.title,
+            description: item.description,
+            category_id: item.category_id,
+            price: item.price,
+            price_type: item.price_type,
+            condition: item.condition,
+            location: item.location,
+            images: item.images
+        });
 
         return { success: true, item_id: item.id, message: 'Nabídka byla úspěšně upravena!' };
     }
@@ -1636,6 +1760,13 @@ class SMCLocalDatabase {
         item.status = newStatus;
         this.addAuditLog(currentUserId, 'item_status_change', 'item', item.id, `Změna stavu nabídky na: ${newStatus}`);
         this.saveDatabase();
+
+        // Odeslání do vzdálené MySQL databáze přes API
+        this.sendApiRequest('updateItemStatus', {
+            id: item.id,
+            user_id: currentUserId,
+            status: newStatus
+        });
 
         let msg = 'Stav nabídky byl úspěšně upraven.';
         if (newStatus === 'reserved') msg = 'Nabídka byla označena jako rezervovaná.';
@@ -1666,6 +1797,12 @@ class SMCLocalDatabase {
         this.addAuditLog(currentUserId, 'item_delete', 'item', item.id, `Ukončení/smazání nabídky: ${item.title}`);
         this.saveDatabase();
 
+        // Odeslání do vzdálené MySQL databáze přes API
+        this.sendApiRequest('endItem', {
+            id: item.id,
+            user_id: currentUserId
+        });
+
         return { success: true, message: 'Nabídka byla úspěšně ukončena a smazána.' };
     }
 
@@ -1688,6 +1825,12 @@ class SMCLocalDatabase {
         }
 
         this.saveDatabase();
+
+        // Odeslání do vzdálené MySQL databáze přes API
+        this.sendApiRequest('toggleFavorite', {
+            item_id: Number(itemId),
+            user_id: currentUserId
+        });
         return {
             success: true,
             is_favorite: isFav,
@@ -1802,6 +1945,14 @@ class SMCLocalDatabase {
         this.data.reports.push(report);
         this.addAuditLog(reporterId, 'report_create', 'report', report.id, `Nahlášení inzerátu #${itemId} z důvodu: ${reason}`);
         this.saveDatabase();
+
+        // Odeslání do vzdálené MySQL databáze přes API
+        this.sendApiRequest('reportItem', {
+            item_id: Number(itemId),
+            reporter_id: Number(reporterId),
+            reason: reason,
+            details: details
+        });
 
         return { success: true, message: 'Inzerát byl nahlášen a odeslán moderátorům komunity k prověření.' };
     }

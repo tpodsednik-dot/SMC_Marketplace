@@ -35,6 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
 });
 
+// Automatické překreslení při synchronizaci dat z MySQL přes API
+window.addEventListener('smc_api_synced', () => {
+    loadItems();
+    loadStats();
+    if (state.currentUser) {
+        renderDrawerMyItems();
+        renderDrawerFavorites();
+    }
+});
+
 // ==========================================================================
 // AUTHENTICATION, REGISTRATION & SESSION MANAGEMENT (FR-01, FR-02, FR-03)
 // ==========================================================================
